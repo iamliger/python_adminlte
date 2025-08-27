@@ -1,0 +1,28 @@
+# Python
+*.pyc
+__pycache__/
+*.egg-info/
+.DS_Store
+.env
+
+# Django
+media/
+staticfiles/
+
+# Virtual environment
+venv/
+env/
+
+# Node.js (React)
+node_modules/
+build/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE (e.g., VS Code)
+.vscode/
+
+# Database files
+*.sqlite3
