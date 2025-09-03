@@ -352,11 +352,13 @@ function displayPredictions(predictions, selectedLogic) {
     const htmlParts = predictions.map(p => {
         const patternKey = p.patternKey;
         const currentStep = logicState[patternKey] || 1;
-        const amountStr = moneyArrStep[currentStep - 1] ? addComma(moneyArrStep[currentStep - 1]) : '...';
+        // moneyArrStep이 정의되지 않았거나 비어있을 경우를 대비한 안전 로직
+        const amountStr = (moneyArrStep && moneyArrStep[currentStep - 1]) ? addComma(moneyArrStep[currentStep - 1]) : '...';
         const bettingPosHtml = renderBettingPosition(p.bettingpos);
 
-        // measu가 undefined, null, 빈 문자열일 경우 빈 문자열로 처리
+        // p.measu가 undefined, null, 빈 문자열일 경우 빈 문자열로 처리
         const measuDisplay = (p.measu !== undefined && p.measu !== null && p.measu !== '') ? `[${p.measu}매]` : '';
+        // p.display_name이 없을 경우 patternKey 사용
         const displayName = p.display_name || patternKey;
 
         // 최종 메시지 형식: [로직 이름]: (P 2,000 [X매] (Y단계))
