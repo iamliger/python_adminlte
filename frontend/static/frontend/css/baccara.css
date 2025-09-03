@@ -49,6 +49,8 @@ html.dark * {
 /* ==================================== */
 
 :root {
+    --scrollbar-height-allowance: 10px;
+
     --checker-size: 32px;
     /* PC 본매 격자 셀 크기 (정사각형) */
     --icon-padding: 2px;
@@ -307,7 +309,7 @@ html.dark #main-roadmap-container {
     left: 0;
     right: 0;
     bottom: 0;
-    overflow-x: auto;
+    overflow-x: auto !important;
     overflow-y: hidden;
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -319,6 +321,11 @@ html.dark #main-roadmap-container {
 
 [id^="history-grid-"] {
     display: inline-grid;
+    grid-auto-columns: var(--history-checker-size);
+    grid-template-rows: repeat(6, var(--history-checker-size)) !important;
+    place-items: center;
+    width: max-content;
+    min-width: 100%;
 }
 
 /* ==================================== */

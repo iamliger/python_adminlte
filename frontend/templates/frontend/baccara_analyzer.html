@@ -164,16 +164,16 @@
             </div>
 
             <!-- 4. 히스토리 보드 영역 -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-x-0.5 gap-y-0.5 mt-1 mb-1 flex-shrink-0">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-x-0.5 gap-y-0.5 mt-1 mb-1 flex-shrink-0"> {# flex-1 min-h-0 클래스 제거 #}
                 {% for row_count in history_box_rows %}
                 {% with forloop_counter=forloop.counter %}
                 <div id="history-box-{{ forloop_counter }}" data-rows="{{ row_count }}"
                     class="history-box-styles-base history-box-{{ forloop_counter }}-styles history-checkerboard-bg"
                     style="height: calc(var(--history-checker-size) * {{ row_count }} + var(--scrollbar-height-allowance));">
-                    <div id="history-scroll-wrapper-{{ forloop_counter }}" class="history-scroll-wrapper">
+                    
+                    <div id="history-scroll-wrapper-{{ forloop_counter }}" class="history-scroll-wrapper"> 
                         <div id="history-grid-{{ forloop_counter }}"
-                            class="inline-grid grid-rows-[repeat({{ row_count }},var(--history-checker-size))] grid-auto-flow-column grid-auto-columns-[var(--history-checker-size)] place-items-start gap-0"
-                            style="grid-template-rows: repeat({{ row_count }}, var(--history-checker-size));">
+                            class="inline-grid grid-rows-[repeat({{ row_count }},var(--history-checker-size))] grid-auto-flow-column grid-auto-columns-[var(--history-checker-size)] place-items-start gap-0">
                         </div>
                     </div>
                 </div>
