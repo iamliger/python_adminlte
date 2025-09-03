@@ -1,0 +1,266 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>바카라 분석기</title>
+    <link rel="shortcut icon" href="{% static 'frontend/img/favicon.ico' %}" type="image/x-icon">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Tabler Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <link rel="stylesheet" href="{% static 'frontend/css/output.css' %}">
+    <!-- 커스텀 CSS -->
+    <link rel="stylesheet" href="{% static 'frontend/css/baccara.css' %}">
+
+    <!-- HTMX CDN -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <!-- Alpine.js CDN -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Chart.js 및 Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+</head>
+
+<body class="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100">
+
+    <div class="min-h-screen flex flex-col">
+        <!-- 헤더 -->
+        <header id="page-header"
+            x-data="{ totMoney: '초기금액 0 셋팅 하였습니다.', predictionHtml: '' }"
+            x-init="
+                window.updateHeaderInfo = (money, prediction) => {
+                    totMoney = money;
+                    predictionHtml = prediction;
+                };
+                if (moneyArrStep && moneyArrStep.length > 0) {
+                    totMoney = '초기금액 ' + Number(moneyArrStep[0]).toLocaleString() + ' 셋팅 하였습니다.';
+                } else {
+                    totMoney = '초기금액 0 셋팅 하였습니다.';
+                }
+            "
+            class="bg-white dark:bg-gray-800 shadow-md h-16 flex items-center px-4 sticky top-0 z-20 flex-shrink-0 justify-between">
+            
+            <div class="flex-1 flex items-center justify-start gap-2 h-full relative">
+                {% if device_mode == "Mobile" %}
+                <i class="ti ti-currency-won ml-2 cursor-pointer mobile-icon-large" @click="openModal('won-modal')"></i>
+                {% endif %}
+                <span x-text="totMoney" class="text-xl font-semibold text-gray-800 dark:text-gray-100 truncate md:text-2xl"></span>
+                <!-- 예측 메시지 오버레이 토스트 -->
+                <div x-html="predictionHtml" id="persistent-prediction-toast"
+                     class="toast-header-prediction" x-show="predictionHtml !== ''"
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-y-full"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-300"
+                     x-transition:leave-start="opacity-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 translate-y-full">
+                </div>
+            </div>
+
+            <!-- Alpine.js를 사용한 설정 드롭다운 메뉴 (사이드바 대체) -->
+            <div x-data="{ openSettings: false, isDarkMode: localStorage.getItem('theme') === 'dark' || window.matchMedia('(prefers-color-scheme: dark)').matches }"
+                 x-init="$watch('isDarkMode', value => { document.documentElement.classList.toggle('dark', value); localStorage.setItem('theme', value ? 'dark' : 'light'); });"
+                 class="relative ml-auto flex-shrink-0">
+                <button @click="openSettings = !openSettings" type="button" class="flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white mobile-icon-large no-border-button" aria-expanded="false" aria-haspopup="true" aria-label="설정 메뉴 열기">
+                    <i class="ti ti-settings text-2xl"></i>
+                </button>
+
+                <!-- 드롭다운 패널 -->
+                <div x-show="openSettings" @click.away="openSettings = false"
+                     x-transition:enter="transition ease-out duration-100"
+                     x-transition:enter-start="transform opacity-0 scale-95"
+                     x-transition:enter-end="transform opacity-100 scale-100"
+                     x-transition:leave="transition ease-in duration-75"
+                     x-transition:leave-start="transform opacity-100 scale-100"
+                     x-transition:leave-end="transform opacity-0 scale-95"
+                     class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-50 dropdown-panel-styles"
+                     role="menu" aria-orientation="vertical" aria-labelledby="settings-menu-button">
+                    <div class="py-1" role="none">
+                        <a href="{% url 'frontend:baccara_analyzer' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">홈</a>
+                        <a href="#" @click.prevent="openModal('mypage-content-modal'); openSettings = false;" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">마이페이지</a>
+                        <a href="#" @click.prevent="openModal('setting-box-modal'); openSettings = false;" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">환경설정</a>
+                        <button @click="isDarkMode = !isDarkMode; openSettings = false;" class="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">
+                            <i :class="isDarkMode ? 'ti ti-sun' : 'ti ti-moon'" class="text-lg mr-2"></i>
+                            다크모드
+                        </button>
+                        <a href="{% url 'accounts:logout' %}" class="block px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">로그아웃</a>
+                        {% if member_level >= 5 %}
+                        <a href="/admin/" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">관리자</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 실제 콘텐츠 영역 -->
+        <main class="flex-1 p-1 sm:p-2 flex flex-col overflow-y-auto"> {# padding을 p-1 sm:p-2로 줄임 #}
+            <!-- 1. 상단 정보 및 버튼 -->
+            <div class="flex flex-wrap justify-between items-center gap-1 mb-1 flex-shrink-0"> {# gap과 mb를 더 줄임 #}
+                <div class="flex flex-wrap items-center gap-0.5"> {# gap을 더 줄임 #}
+                    <button id="player-btn"
+                        class="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm shadow mobile-button-text">플레이어
+                        <span id="player-count" class="font-semibold ml-1">0</span></button>
+
+                    <button id="banker-btn"
+                        class="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm shadow mobile-button-text">뱅커
+                        <span id="banker-count" class="font-semibold ml-1">0</span></button>
+                </div>
+                <div class="flex items-center gap-0.5 flex-wrap"> {# gap을 더 줄임 #}
+                    {# device_mode에 따라 PC와 모바일 UI를 조건부 렌더링 #}
+                    {% if device_mode == "PC" %}
+                    <div id="logic-btn-group" role="radiogroup" class="sm:flex items-center rounded-md shadow-sm"> {# hidden 클래스 제거 #}
+                        <button type="button" role="radio" aria-checked="true" data-value="logic1"
+                            class="logic-btn relative inline-flex items-center px-3 py-1 rounded-l-md border border-gray-300 bg-indigo-600 text-sm font-medium text-white hover:bg-indigo-700 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-600 mobile-button-text">
+                            로직1
+                        </button>
+                        <button type="button" role="radio" aria-checked="false" data-value="logic2"
+                            class="logic-btn relative inline-flex items-center px-3 py-1 -ml-px border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600 mobile-button-text">
+                            로직2
+                        </button>
+                        <button type="button" role="radio" aria-checked="false" data-value="logic3"
+                            class="logic-btn relative inline-flex items-center px-3 py-1 -ml-px border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600 mobile-button-text">
+                            로직3
+                        </button>
+                        <button type="button" role="radio" aria-checked="false" data-value="logic4"
+                            class="logic-btn relative inline-flex items-center px-3 py-1 -ml-px rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600 mobile-button-text">
+                            로직4
+                        </button>
+                    </div>
+                    {% else %} {# device_mode가 Mobile일 경우 #}
+                    <div x-data="{ selectedLogic: localStorage.getItem('game_env_{{ member_id }}') ? (JSON.parse(localStorage.getItem('game_env_{{ member_id }}')).selectedLogic || 'logic1') : 'logic1' }"
+                         x-init="$watch('selectedLogic', value => {
+                             let settings = loadSavedSettings();
+                             settings.selectedLogic = value;
+                             localStorage.setItem(GAMEENV_KEY, JSON.stringify(settings));
+                         });"
+                         class="relative mobile-select-container flex items-center">
+                        <span class="px-2 py-1 text-white rounded-md text-sm shadow mobile-button-text">패턴로직</span>
+                        <select x-model="selectedLogic" title="패턴 로직 선택"
+                                class="pattern-select block w-auto pl-2 pr-8 py-1 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 mobile-select-text">
+                            <option value="logic1">로직1</option>
+                            <option value="logic2">로직2</option>
+                            <option value="logic3">로직3</option>
+                            <option value="logic4">로직4</option>
+                        </select>
+                    </div>
+                    {% endif %}
+
+                    <span class="px-2 py-1 bg-gray-500 text-white rounded-md text-sm shadow mobile-button-text">합: <span
+                            id="total-count" class="font-semibold ml-1">0</span></span>
+                    <button id="cancel-btn"
+                        class="px-2 py-1 bg-gray-400 hover:bg-gray-500 text-black rounded-md text-sm shadow mobile-button-text">취소</button>
+                </div>
+            </div>
+
+            <!-- 2. 단계별 금액 라벨 -->
+            <div class="mb-1 flex-shrink-0"> {# mb-0.5로 변경 #}
+                <div id="money-step-wrapper" class="transition-all duration-300">
+                    <div id="money-step" class="flex flex-wrap gap-0.5 sm:gap-1 justify-start"> {# gap을 더 줄임 #}
+                        {% if not is_show_money_info %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. 본매 (메인 로드맵) 영역 -->
+            <div id="main-roadmap-container"
+                class="main-roadmap-styles checkerboard-bg flex-shrink-0 mb-1"
+                style="height: calc(var(--checker-size) * 6);">
+                <div id="roadmap-grid"
+                    class="grid grid-rows-[repeat(6,var(--checker-size))] grid-auto-flow-column grid-auto-columns-[var(--checker-size)] w-max h-full place-items-center gap-0">
+                </div>
+            </div>
+
+            <!-- 4. 히스토리 보드 영역 -->
+            {# 히스토리 보드 간격을 조정하기 위해 gap-x-0.5, gap-y-0.5 적용 #}
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-x-1 gap-y-1 mt-1 mb-1 flex-shrink-0"> {# gap, mt, mb를 더 줄임, flex-1 min-h-0 유지 #}
+                {% for row_count in history_box_rows %}
+                {% with forloop_counter=forloop.counter %}
+                <div id="history-box-{{ forloop_counter }}" data-rows="{{ row_count }}"
+                    class="history-box-styles-base history-box-{{ forloop_counter }}-styles history-checkerboard-bg"
+                    style="height: calc(var(--history-checker-size) * {{ row_count }} + var(--scrollbar-height-allowance));">
+                    <div class="history-scroll-wrapper">
+                        <div id="history-grid-{{ forloop_counter }}"
+                            class="inline-grid grid-rows-[repeat({{ row_count }},var(--history-checker-size))] grid-auto-flow-column grid-auto-columns-[var(--history-checker-size)] place-items-start gap-0">
+                        </div>
+                    </div>
+                </div>
+                {% endwith %}
+                {% endfor %}
+            </div>
+
+            <!-- 5. 콘솔/차트 영역 -->
+            <div id="interactive-area" class="relative console-box-container flex-shrink-0 console-height-adjust mt-">
+
+                <div id="console-wrapper" class="toggle-view">
+                    <div class="console-box" id="console"></div>
+                </div>
+                <div id="chart-wrapper" class="toggle-view hidden">
+                    <div class="console-box">
+                        <canvas id="analytics-chart-inline"></canvas>
+                    </div>
+                </div>
+
+                <div class="absolute top-0 right-0 flex gap-1 p-1 console-buttons-group"> {# gap과 p를 줄임 #}
+                    {% if member_level >= 5 %}
+                    <button id="view-copy-btn"
+                        class="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-md shadow-lg z-10 mobile-button-text">
+                        로그 복사
+                    </button>
+                    {% endif %}
+                    <button id="view-toggle-btn" data-current-view="console"
+                        class="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-md shadow-lg z-10 mobile-button-text">
+                        차트 보기
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- 6. 하단 버튼 -->
+            <div
+                class="flex flex-wrap justify-between items-center gap-2 mt-1 pt-1 border-t border-gray-200 dark:border-gray-700 flex-shrink-0"> {# gap, mt, pt 줄임 #}
+                <div class="flex flex-wrap items-center gap-1">
+                    <button id="reset-btn"
+                        class="px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm shadow mobile-button-text">리셋</button>
+                </div>
+                <div>
+                    <a href="{% url 'accounts:logout' %}"
+                        class="px-4 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm shadow inline-block mobile-button-text">로그아웃</a>
+                </div>
+            </div>
+
+            {% include 'frontend/modals.html' %}
+
+        </main>
+    </div>
+
+    <!-- loading-spinner의 인라인 스타일을 클래스로 변경 -->
+    <div id="loading-spinner" class="loading-spinner-styles hidden" style="display:none;">
+        <div class="relative">
+            <img src="{% static 'frontend/img/spinner.gif' %}" alt="로딩 중..." class="w-12 h-12">
+        </div>
+    </div>
+
+    <!-- Django 템플릿 변수를 JavaScript에서 사용하기 위한 초기화 블록 -->
+    <script>
+        const DJANGO_CONTEXT = {
+            memberId: "{{ member_id }}",
+            memberLevel: {{ member_level }},
+            isShowMoneyInfo: {{ is_show_money_info|lower }}, // JavaScript boolean으로 변환
+            moneyJson: JSON.parse('{{ money_json|escapejs }}'),
+            deviceMode: "{{ device_mode }}",
+            G5BbsUrl: "{{ G5_BBS_URL }}",
+            G5Url: "{{ G5_URL }}",
+        };
+    </script>
+    <!-- main JS file -->
+    <script src="{% static 'frontend/js/baccara_app.js' %}"></script>
+</body>
+
+</html>

@@ -1,0 +1,309 @@
+{% load static %}
+
+<!-- 금액설정 모달 -->
+<div id="moneystepinfo-modal"
+    x-data="{ open: {% if is_show_money_info %} true {% else %} false {% endif %}, initialMoney: '' }"
+    x-show="open"
+    @keydown.escape.window="open = false"
+    class="modal-base"
+    role="dialog" aria-modal="true" aria-labelledby="moneystepinfo-title">
+    <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+         x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+         class="modal-panel-base modal-panel-md">
+        <!-- 헤더 -->
+        <div class="flex items-center justify-between border-b pb-3 dark:border-gray-600">
+            <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-100" id="moneystepinfo-title">
+                게임설정</h3>
+            <button type="button" @click="open = false"
+                class="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:hover:bg-gray-700">
+                <span class="sr-only">닫기</span>
+                <i class="ti ti-x text-xl"></i>
+            </button>
+        </div>
+        <!-- 바디 -->
+        <div class="mt-4">
+            <form id="moneystepinfo-form">
+                <!-- display: none; 인라인 스타일 제거, CSS 클래스로 관리 -->
+                <div class="mb-4 hidden"> 
+                    <label for="game-count"
+                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">게임입력횟수
+                        (10회이상):</label>
+                    <input type="text" id="game-count" inputmode="numeric" value='0'
+                        class="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 sm:text-sm"
+                        placeholder="예: 10">
+                </div>
+                <div class="mb-4">
+                    <label for="money"
+                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">시작금액:</label>
+                    <input type="text" id="money" x-model="initialMoney" inputmode="numeric"
+                        class="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 sm:text-sm"
+                        placeholder="예: 10000">
+                </div>
+            </form>
+        </div>
+        <!-- 푸터 -->
+        <div class="mt-5 flex justify-end border-t pt-4 dark:border-gray-600">
+            <button type="button" @click="gotomoneyAndCloseModal('moneystepinfo-modal'); open = false;"
+                class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                확인
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 환경설정 모달 -->
+<div id="setting-box-modal"
+    x-data="{ open: false,
+              gameSettingEnabled: false,
+              moneyInfoVisible: false,
+              soundSettingEnable: false,
+              showConsoleEnable: true,
+              virtualBettingEnabled: true }"
+    x-show="open"
+    @keydown.escape.window="open = false"
+    class="modal-base"
+    role="dialog" aria-modal="true" aria-labelledby="setting-box-title"
+    x-init="$watch('open', value => {
+        if (value) {
+            $el.classList.remove('opacity-0');
+            $el.querySelector('.transform').classList.remove('opacity-0', 'scale-95');
+            // 모달 열릴 때 설정 로드
+            const settings = loadSavedSettings(); // baccara_app.js의 함수 호출
+            gameSettingEnabled = settings.gameSettingEnabled;
+            moneyInfoVisible = settings.moneyInfoVisible;
+            soundSettingEnable = settings.soundSettingEnable;
+            showConsoleEnable = settings.showConsoleEnable;
+            virtualBettingEnabled = settings.virtualBettingEnabled;
+        } else {
+            $el.classList.add('opacity-0');
+            $el.querySelector('.transform').classList.add('opacity-0', 'scale-95');
+            setTimeout(() => { $el.classList.add('hidden'); }, 300);
+            // 모달 닫힐 때 설정 적용 (baccara_app.js의 함수 호출)
+            applyVisibility('money-step-wrapper', moneyInfoVisible);
+            applyVisibility('interactive-area', showConsoleEnable);
+        }
+    });">
+    <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+         x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+         class="modal-panel-base modal-panel-lg">
+        <!-- 헤더 -->
+        <div class="flex items-center justify-between border-b pb-3 dark:border-gray-600">
+            <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-100" id="setting-box-title">
+                환경설정 <span class="text-sm font-normal"></span>
+            </h3>
+            <button type="button" @click="open = false"
+                class="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:hover:bg-gray-700">
+                <span class="sr-only">닫기</span>
+                <i class="ti ti-x text-xl"></i>
+            </button>
+        </div>
+        <!-- 바디 -->
+        <div class="mt-4">
+            <form id="setting-box-form" class="space-y-4">
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label for="gamesetting-toggle"
+                            class="text-sm font-medium text-gray-700 dark:text-gray-300">게임셋팅하기</label>
+                        <button type="button" role="switch" id="gamesetting-toggle" :aria-checked="gameSettingEnabled.toString()"
+                            @click="gameSettingEnabled = !gameSettingEnabled; saveSetting('gameSettingEnabled', gameSettingEnabled)"
+                            :class="gameSettingEnabled ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700'"
+                            class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                            <span class="sr-only">게임셋팅하기</span>
+                            <span :class="gameSettingEnabled ? 'translate-x-5' : 'translate-x-0'"
+                                class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                        </button>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <label for="soundsetting-toggle"
+                            class="text-sm font-medium text-gray-700 dark:text-gray-300">소리설정</label>
+                        <button type="button" role="switch" id="soundsetting-toggle" :aria-checked="soundSettingEnable.toString()"
+                            @click="soundSettingEnable = !soundSettingEnable; saveSetting('soundSettingEnable', soundSettingEnable)"
+                            :class="soundSettingEnable ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700'"
+                            class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                            <span class="sr-only">소리설정</span>
+                            <span :class="soundSettingEnable ? 'translate-x-5' : 'translate-x-0'"
+                                class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                        </button>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <label for="chkmoneyinfo-toggle"
+                            class="text-sm font-medium text-gray-700 dark:text-gray-300">금액정보보이기</label>
+                        <button type="button" role="switch" id="chkmoneyinfo-toggle" :aria-checked="moneyInfoVisible.toString()"
+                            @click="moneyInfoVisible = !moneyInfoVisible; saveSetting('moneyInfoVisible', moneyInfoVisible)"
+                            :class="moneyInfoVisible ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700'"
+                            class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                            <span class="sr-only">금액정보보이기</span>
+                            <span :class="moneyInfoVisible ? 'translate-x-5' : 'translate-x-0'"
+                                class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <label for="chkconsole-toggle"
+                            class="text-sm font-medium text-gray-700 dark:text-gray-300">콘솔박스보이기</label>
+                        <button type="button" role="switch" id="chkconsole-toggle" :aria-checked="showConsoleEnable.toString()"
+                            @click="showConsoleEnable = !showConsoleEnable; saveSetting('showConsoleEnable', showConsoleEnable)"
+                            :class="showConsoleEnable ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700'"
+                            class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                            <span class="sr-only">콘솔박스보이기</span>
+                            <span :class="showConsoleEnable ? 'translate-x-5' : 'translate-x-0'"
+                                class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                        </button>
+                    </div>
+
+                    <!-- 가상배팅 활성화 스위치 -->
+                    <div class="flex items-center justify-between">
+                        <label for="chkvirtualbet-toggle" class="text-sm font-medium text-gray-700 dark:text-gray-300">가상배팅
+                            활성화</label>
+                        <button type="button" role="switch" id="chkvirtualbet-toggle" :aria-checked="virtualBettingEnabled.toString()"
+                            @click="virtualBettingEnabled = !virtualBettingEnabled; saveSetting('virtualBettingEnabled', virtualBettingEnabled)"
+                            :class="virtualBettingEnabled ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700'"
+                            class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                            <span class="sr-only">가상배팅 활성화</span>
+                            <span :class="virtualBettingEnabled ? 'translate-x-5' : 'translate-x-0'"
+                                class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <!-- 푸터 -->
+        <div class="mt-5 flex justify-end space-x-3 border-t pt-4 dark:border-gray-600">
+            <button type="button" @click="open = false"
+                class="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-600 dark:text-gray-100 dark:hover:bg-gray-500 dark:focus:ring-offset-gray-800">
+                닫기
+            </button>
+            <button type="button" @click="open = false"
+                class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                확인
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 마이페이지 모달 -->
+<div id="mypage-content-modal"
+    x-data="{ open: false }"
+    x-show="open"
+    @keydown.escape.window="open = false"
+    class="modal-base modal-base-wide"
+    role="dialog" aria-modal="true" aria-labelledby="mypage-modal-title">
+    <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+         x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+         class="modal-panel-base modal-panel-mypage">
+        <!-- 헤더 -->
+        <div
+            class="flex flex-shrink-0 items-center justify-between rounded-t-2xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700/50">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100" id="mypage-modal-title">
+                마이페이지
+            </h3>
+            <button type="button" @click="open = false"
+                class="rounded-full p-1.5 text-gray-500 hover:bg-gray-200 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-gray-200">
+                <span class="sr-only">닫기</span>
+                <i class="ti ti-x text-xl"></i>
+            </button>
+        </div>
+
+        <!-- 바디 -->
+        <div id="mypage-modal-body-content" class="flex-1 overflow-y-auto p-6 sm:p-8">
+            <div id="mypage-modal-loading"
+                class="flex h-40 items-center justify-center text-gray-500 dark:text-gray-400 loading-spinner-inner-styles">
+                <i class="ti ti-loader animate-spin text-3xl"></i>
+                <span class="ml-2">로딩 중...</span>
+            </div>
+        </div>
+
+        <!-- 푸터 -->
+        <div
+            class="flex flex-shrink-0 items-center justify-end rounded-b-2xl border-t border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700/50">
+            <button type="button" @click="open = false"
+                class="rounded-lg bg-gray-200 px-5 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 dark:bg-gray-600 dark:text-gray-100 dark:hover:bg-gray-500 dark:focus:ring-offset-gray-800 transition duration-150">
+                닫기
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 설정된 금액표 모달 -->
+<div id="won-modal"
+    x-data="{ open: false }"
+    x-show="open"
+    @keydown.escape.window="open = false"
+    class="modal-base"
+    role="dialog" aria-modal="true" aria-labelledby="moneystepinfo-title">
+    <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+         x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+         class="modal-panel-base modal-panel-md">
+        <!-- 헤더 -->
+        <div class="flex items-center justify-between border-b pb-3 dark:border-gray-600">
+            <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-100">
+                금액 정보
+            </h3>
+            <button type="button" @click="open = false"
+                class="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:hover:bg-gray-700">
+                <span class="sr-only">닫기</span>
+                <i class="ti ti-x text-xl"></i>
+            </button>
+        </div>
+        <!-- 바디 -->
+        <div id="won-modal-body" class="mt-4 flex flex-wrap gap-2 sm:gap-3 justify-center">
+        </div>
+        <!-- 푸터 -->
+        <div class="mt-5 flex justify-end border-t pt-4 dark:border-gray-600">
+            <button type="button" @click="open = false"
+                class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                확인
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- alert-modal 블록 -->
+<div id="alert-modal"
+    x-data="{ open: false, title: '', message: '', icon: '', onConfirm: () => {} }"
+    x-show="open"
+    @keydown.escape.window="open = false"
+    class="modal-base"
+    role="dialog" aria-modal="true" aria-labelledby="alert-modal-title">
+    <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+         x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+         class="modal-panel-base modal-panel-sm">
+        <!-- 헤더 -->
+        <div
+            class="flex flex-shrink-0 items-center justify-between rounded-t-2xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700/50">
+            <h3 id="alert-modal-title" class="text-lg font-semibold text-gray-800 dark:text-gray-100" x-text="title">
+                알림
+            </h3>
+        </div>
+
+        <!-- 바디 -->
+        <div class="flex-1 p-6">
+            <!-- 아이콘 -->
+            <div id="alert-modal-icon-wrapper"
+                :class="{
+                    'bg-green-100 dark:bg-green-900/50': icon === 'success',
+                    'bg-red-100 dark:bg-red-900/50': icon === 'error',
+                    'bg-yellow-100 dark:bg-yellow-900/50': icon === 'warning',
+                    'bg-blue-100 dark:bg-blue-900/50': icon === 'info' || icon === ''
+                }"
+                class="mx-auto flex h-12 w-12 items-center justify-center rounded-full mb-4">
+                <template x-if="icon === 'success'"><i class="ti ti-check text-2xl text-green-600 dark:text-green-400"></i></template>
+                <template x-if="icon === 'error'"><i class="ti ti-x text-2xl text-red-600 dark:text-red-400"></i></template>
+                <template x-if="icon === 'warning'"><i class="ti ti-alert-triangle text-2xl text-yellow-600 dark:text-yellow-400"></i></template>
+                <template x-if="icon === 'info' || icon === ''"><i class="ti ti-info-circle text-2xl text-blue-600 dark:text-blue-400"></i></template>
+            </div>
+            <!-- 메시지 -->
+            <p id="alert-modal-message" class="text-sm text-gray-600 dark:text-gray-400" x-text="message">
+            </p>
+        </div>
+
+        <!-- 푸터 -->
+        <div
+            class="flex flex-shrink-0 items-center justify-center rounded-b-2xl border-t border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700/50">
+            <button id="alert-modal-confirm-btn" type="button" @click="open = false; onConfirm()"
+                class="w-full rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition duration-150">
+                확인
+            </button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,725 @@
+/* frontend/static/frontend/css/baccara.css */
+
+/* ==================================== */
+/* --- 1. 스크롤바 기본 스타일 --- */
+/* ==================================== */
+
+/* Webkit 브라우저 (Chrome, Safari)용 전체 페이지 기본 스크롤바 */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #a0a0a0;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #808080;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+    background: #718096;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
+}
+
+/* Firefox 및 표준 브라우저용 전체 페이지 기본 스크롤바 */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #a0a0a0 transparent;
+}
+
+html.dark * {
+    scrollbar-color: #718096 transparent;
+}
+
+
+/* ==================================== */
+/* --- 2. CSS 변수 정의 --- */
+/* ==================================== */
+
+:root {
+    /* 레이아웃 및 크기 (원하는 이미지에 맞춰 조정) */
+    --checker-size: 2rem;
+    /* PC 본매 바둑판 크기 (32px) - 원본 이미지에 더 가깝게 조정 */
+    --icon-size: 1.5rem;
+    /* PC 본매 아이콘 크기 (24px) */
+
+    --history-checker-size: 1.5rem;
+    /* PC 히스토리 바둑판 크기 (24px) - 원본 이미지에 더 가깝게 조정 */
+    --history-icon-size: 1rem;
+    /* PC 히스토리 아이콘 크기 (16px) */
+
+    --scrollbar-height-allowance: 14px;
+    /* 히스토리 스크롤바 공간 (숨겨지지만 공간은 차지) */
+
+    /* 라이트 모드 색상 */
+    --checker-light-bg: #ffffff;
+    --checker-light-line: #4b5563;
+    /* 원하는 이미지에 맞춰 격자 선 색상 조정 (어둡게) */
+    --console-bg: #ffffff;
+    --console-border: #e5e7eb;
+    --console-text-default: #1f2937;
+    --console-player-color: #2563eb;
+    --console-banker-color: #dc2626;
+    --console-tie-color: #16a34a;
+    --console-system-color: #f59e0b;
+    --console-scrollbar-track: #f3f4f6;
+    --console-scrollbar-thumb: #9ca3af;
+    --console-message-bg: rgba(243, 244, 246, 0.6);
+
+    /* 다크 모드 색상 (html.dark에서 오버라이드) */
+    --checker-dark-bg: #111827;
+    --checker-dark-line: #4b5563;
+    /* 원하는 이미지에 맞춰 격자 선 색상 조정 (어둡게) */
+}
+
+html.dark {
+    --console-bg: #1f2937;
+    --console-border: #4b5563;
+    --console-text-default: #f3f4f6;
+    --console-player-color: #60a5fa;
+    --console-banker-color: #f87171;
+    --console-tie-color: #4ade80;
+    --console-system-color: #fcd34d;
+    --console-scrollbar-track: #111827;
+    --console-scrollbar-thumb: #4b5563;
+    --console-message-bg: rgba(55, 65, 81, 0.5);
+}
+
+/* ==================================== */
+/* --- 모바일 반응형 크기 조정 --- */
+/* ==================================== */
+@media (max-width: 639px) {
+
+    /* Tailwind 'sm' breakpoint 미만 (모바일) */
+    :root {
+        --checker-size: 1.5rem;
+        /* 모바일에서 본매 바둑판 크기 줄임 (24px) */
+        --icon-size: 1.1rem;
+        /* 모바일에서 본매 아이콘 크기 줄임 (약 17.6px) */
+
+        --history-checker-size: 1rem;
+        /* 모바일에서 히스토리 바둑판 크기 줄임 (16px) */
+        --history-icon-size: 0.7rem;
+        /* 모바일에서 히스토리 아이콘 크기 줄임 (약 11.2px) */
+    }
+
+    /* 모바일 버튼 및 텍스트 크기 조정 */
+    .mobile-button-text {
+        padding-left: 0.4rem !important;
+        /* px-1.5 */
+        padding-right: 0.4rem !important;
+        /* px-1.5 */
+        padding-top: 0.15rem !important;
+        /* py-0.25 */
+        padding-bottom: 0.15rem !important;
+        /* py-0.25 */
+        font-size: 0.6rem !important;
+        /* 9.6px */
+        line-height: 0.75rem !important;
+    }
+
+    .mobile-text-base {
+        /* 드롭다운 메뉴 아이템 텍스트 크기 */
+        font-size: 0.7rem !important;
+        /* 11.2px */
+    }
+
+    .mobile-icon-large i {
+        /* 헤더 아이콘 크기 */
+        font-size: 1.1rem !important;
+        /* 17.6px */
+    }
+
+    .mobile-select-container select {
+        font-size: 0.6rem !important;
+        /* 9.6px */
+        padding-left: 0.4rem !important;
+        padding-right: 1.5rem !important;
+        /* 화살표 공간 확보 */
+        height: 1.4rem;
+        /* 22.4px */
+    }
+
+    /* 콘솔 및 차트 토글/복사 버튼 크기 조정 */
+    .console-buttons-group button {
+        /* 그룹화된 버튼에 적용 */
+        padding: 0.15rem 0.3rem !important;
+        /* px-0.5 py-0.25 정도 */
+        font-size: 0.5rem !important;
+        /* 8px */
+    }
+}
+
+
+/* ==================================== */
+/* --- 3. 로드맵 및 그리드 스타일 --- */
+/* ==================================== */
+
+/* 격자 배경 공통 */
+.checkerboard-bg {
+    background-image: linear-gradient(to right, var(--checker-light-line) 1px, transparent 1px), linear-gradient(to bottom, var(--checker-light-line) 1px, transparent 1px);
+    background-color: var(--checker-light-bg);
+    background-size: var(--checker-size) var(--checker-size);
+}
+
+.history-checkerboard-bg {
+    background-image: linear-gradient(to right, var(--checker-light-line) 1px, transparent 1px), linear-gradient(to bottom, var(--checker-light-line) 1px, transparent 1px);
+    background-color: var(--checker-light-bg);
+    background-size: var(--history-checker-size) var(--history-checker-size);
+    border: 1px solid var(--checker-light-line);
+    /* 히스토리보드 테두리 추가 */
+    border-radius: 0.375rem;
+    /* rounded-md */
+}
+
+html.dark .checkerboard-bg,
+html.dark .history-checkerboard-bg {
+    background-image: linear-gradient(to right, var(--checker-dark-line) 1px, transparent 1px), linear-gradient(to bottom, var(--checker-dark-line) 1px, transparent 1px);
+    background-color: var(--checker-dark-bg);
+    border-color: var(--checker-dark-line);
+    /* 다크 모드 테두리 색상 */
+}
+
+/* --- 본매 스크롤 처리 --- */
+#main-roadmap-container {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    border: 1px solid var(--checker-light-line);
+    /* 본매 테두리 추가 */
+    border-radius: 0.375rem;
+    /* rounded-md */
+    margin-bottom: 0.25rem;
+    /* mb-1로 조정 */
+}
+
+html.dark #main-roadmap-container {
+    border-color: var(--checker-dark-line);
+    /* 다크 모드 테두리 색상 */
+}
+
+#main-roadmap-container::-webkit-scrollbar {
+    display: none;
+}
+
+#roadmap-grid {
+    display: inline-grid;
+}
+
+
+/* --- 히스토리 박스 스크롤 및 레이아웃 처리 --- */
+.history-box-styles-base {
+    position: relative;
+    overflow: hidden;
+    align-self: start;
+    flex-shrink: 0;
+    /* flex 컨테이너 안에서 줄어들지 않도록 명시 */
+    min-height: 0;
+    /* 일부 브라우저/컨텍스트에서 flex/grid 아이템의 min-height 기본값이 height를 덮어쓰는 것을 방지 */
+}
+
+/* 히스토리보드 간격 조정 */
+.grid.grid-cols-2 {
+    /* 히스토리보드의 부모 컨테이너 */
+    gap: 1.0rem;
+    /* 모바일에서 gap-1 (4px)로 통일, Tailwind의 기본 gap-x-1, gap-y-1 */
+}
+
+@media (min-width: 640px) {
+
+    /* sm 이상 */
+    .grid.grid-cols-2.md\:grid-cols-4 {
+        /* PC에서 히스토리보드 부모 컨테이너 */
+        gap: 1.0rem;
+        /* sm:gap-2 (8px)로 통일 */
+    }
+}
+
+
+.history-scroll-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.history-scroll-wrapper::-webkit-scrollbar {
+    display: none;
+}
+
+[id^="history-grid-"] {
+    display: inline-grid;
+}
+
+/* ==================================== */
+/* --- 4. 아이콘 및 UI 요소 스타일 --- */
+/* ==================================== */
+
+/* 원 아이콘 공통 */
+.baccarat-circle,
+.history-circle {
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    flex-shrink: 0;
+}
+
+.baccarat-circle {
+    width: var(--icon-size);
+    height: var(--icon-size);
+    font-size: 0.75rem;
+}
+
+.history-circle {
+    width: var(--history-icon-size);
+    height: var(--history-icon-size);
+    font-size: 0.6rem;
+}
+
+/* 타입별 원 아이콘 색상 */
+.baccarat-circle.player,
+.history-circle.player {
+    background-color: #3b82f6;
+}
+
+.baccarat-circle.banker,
+.history-circle.banker {
+    background-color: #ef4444;
+}
+
+.baccarat-circle.tie,
+.history-circle.tie {
+    background-color: #16a34a;
+}
+
+html.dark .baccarat-circle.tie,
+html.dark .history-circle.tie {
+    background-color: #22c55e;
+}
+
+/* 단계 라벨 */
+.step-label {
+    transition: all 0.3s ease;
+}
+
+
+/* ==================================== */
+/* --- 5. 토스트 메시지 스타일 --- */
+/* ==================================== */
+
+.toast-base {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    color: white;
+    text-align: center;
+    padding: 1rem;
+    box-sizing: border-box;
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    z-index: 9999;
+}
+
+.toast-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.center-toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.center-toast.toast-hidden {
+    transform: translate(-50%, -50%) scale(0.95);
+}
+
+.toast-info {
+    background-color: rgba(31, 41, 55, 0.95);
+    border: 1px solid rgba(75, 85, 99, 0.8);
+}
+
+.toast-success {
+    background-color: rgba(34, 197, 94, 0.85);
+}
+
+.toast-error {
+    background-color: rgba(239, 68, 68, 0.85);
+}
+
+.toast-system {
+    background-color: rgba(107, 114, 128, 0.85);
+}
+
+
+/* ==================================== */
+/* --- 6. 콘솔 박스 스타일 --- */
+/* ==================================== */
+
+#console-wrapper {
+    width: 100%;
+}
+
+.console-box {
+    width: 100%;
+    background-color: var(--console-bg);
+    border: 1px solid var(--console-border);
+    border-radius: 0.5rem;
+    padding: 8px;
+    /* 패딩을 8px로 더 줄여 메시지 공간 확보 */
+    min-height: 100px;
+    /* 콘솔 박스의 최소 높이를 100px로 증가 */
+    height: auto;
+    /* 내용물에 따라 높이 조절 */
+    max-height: 150px;
+    /* 최대 높이도 약간 증가 */
+    overflow-y: auto;
+    font-family: monospace;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    scrollbar-width: thin;
+    scrollbar-color: var(--console-scrollbar-thumb) var(--console-scrollbar-track);
+}
+
+#interactive-box-container,
+.console-box-container {
+    margin: 1.0rem 0;
+    /* mt-1, mb-1로 조정 */
+}
+
+/* 콘솔 버튼 그룹 위치 조정 */
+.console-buttons-group {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    gap: 0.5rem;
+    /* Tailwind gap-2 */
+    padding: 0.5rem;
+    /* Tailwind p-2 */
+    z-index: 10;
+}
+
+
+/* 차트 캔버스 크기 설정 */
+#analytics-chart-inline {
+    width: 100%;
+    height: 100% !important;
+}
+
+html.dark .console-box {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.console-box::-webkit-scrollbar-track {
+    background: var(--console-scrollbar-track);
+    border-radius: 8px;
+}
+
+.console-box::-webkit-scrollbar-thumb {
+    background-color: var(--console-scrollbar-thumb);
+    border-radius: 8px;
+    border: 2px solid var(--console-scrollbar-track);
+}
+
+.console-message {
+    margin: 5px 0;
+    line-height: 1.4;
+    padding: 4px 8px;
+    border-left: 3px solid transparent;
+    background-color: var(--console-message-bg);
+    border-radius: 4px;
+    color: var(--console-text-default);
+}
+
+.console-message.player {
+    color: var(--console-player-color);
+    border-left-color: var(--console-player-color);
+}
+
+.console-message.banker {
+    color: var(--console-banker-color);
+    border-left-color: var(--console-banker-color);
+}
+
+.console-message.tie {
+    color: var(--console-tie-color);
+    border-left-color: var(--console-tie-color);
+}
+
+.console-message.system {
+    color: var(--console-system-color);
+    border-left-color: var(--console-system-color);
+}
+
+#page-header {
+    position: relative;
+}
+
+/* 2. 모든 헤더 토스트에 적용될 공통 클래스 */
+.toast-header-prediction {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(31, 41, 55, 0.95);
+    border-bottom: 1px solid rgba(75, 85, 99, 0.8);
+    font-size: 0.875rem;
+    color: #f59e0b;
+    transform: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0 1rem;
+    z-index: 40;
+}
+
+/* 3. 헤더 토스트 내부의 아이콘 스타일 */
+.toast-header-prediction .baccarat-circle {
+    border: 1.5px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* 4. 헤더 토스트 내부의 텍스트 색상도 골드색으로 강제 (필요시) */
+.toast-header-prediction span,
+.toast-header-prediction p {
+    color: #fcd34d;
+}
+
+.toast-header-prediction .font-bold {
+    color: #ffffff;
+}
+
+/* 공통 셀렉트 박스 스타일 */
+.pattern-select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+    transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+html.dark .pattern-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+}
+
+.pattern-select.select-player {
+    color: #93c5fd;
+    font-weight: 600;
+}
+
+.pattern-select.select-banker {
+    color: #fca5a5;
+    font-weight: 600;
+}
+
+.pattern-select option {
+    background-color: #ffffff;
+    color: #111827;
+}
+
+html.dark .pattern-select option {
+    background-color: #374151;
+    color: #f3f4f6;
+}
+
+/* ==================================== */
+/* --- 7. 모달 공통 스타일 --- */
+/* ==================================== */
+
+.modal-base {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    /* Tailwind z-50 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    /* bg-black bg-opacity-50 */
+    transition-property: opacity;
+    transition-duration: 300ms;
+    transition-timing-function: ease-in-out;
+    padding: 1rem;
+    /* p-4 */
+}
+
+.modal-base-wide {
+    /* 마이페이지 모달처럼 넓게 쓰이는 모달의 추가 스타일 */
+    padding-top: 2.5rem;
+    /* pt-10 */
+    padding-bottom: 2.5rem;
+    /* pb-10 */
+}
+
+@media (min-width: 640px) {
+
+    /* sm */
+    .modal-base-wide {
+        padding-top: 4rem;
+        /* sm:pt-16 */
+        padding-left: 1.5rem;
+        /* sm:p-6 */
+        padding-right: 1.5rem;
+        /* sm:p-6 */
+    }
+}
+
+@media (min-width: 1024px) {
+
+    /* lg */
+    .modal-base-wide {
+        padding-top: 5rem;
+        /* lg:pt-20 */
+        padding-left: 2.5rem;
+        /* lg:p-10 */
+        padding-right: 2.5rem;
+        /* lg:p-10 */
+    }
+}
+
+
+.modal-panel-base {
+    position: relative;
+    width: 100%;
+    transform: none;
+    /* Alpine.js transition이 제어 */
+    border-radius: 1rem;
+    /* rounded-lg (16px) */
+    background-color: #ffffff;
+    /* bg-white */
+    padding: 1.5rem;
+    /* p-6 */
+    text-align: left;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    /* shadow-xl */
+    transition-property: all;
+    transition-duration: 300ms;
+    transition-timing-function: ease-out;
+    opacity: 0;
+    /* 초기 상태 */
+    transform: scale(0.95);
+    /* 초기 상태 */
+}
+
+html.dark .modal-panel-base {
+    background-color: #1f2937;
+    /* dark:bg-gray-800 */
+}
+
+/* 모달 크기별 스타일 */
+.modal-panel-sm {
+    max-width: 24rem;
+    /* max-w-sm */
+}
+
+.modal-panel-md {
+    max-width: 28rem;
+    /* max-w-md */
+}
+
+.modal-panel-lg {
+    max-width: 32rem;
+    /* max-w-lg */
+}
+
+.modal-panel-mypage {
+    /* 마이페이지 모달의 특정 스타일 */
+    max-width: 42rem;
+    /* max-w-2xl */
+    display: flex;
+    flex-direction: column;
+    border-radius: 1rem;
+    /* rounded-2xl */
+    max-height: 85vh;
+    /* max-h-[85vh] */
+    margin-left: 0;
+    /* md:ml-20 는 미디어 쿼리 필요 */
+}
+
+@media (min-width: 768px) {
+
+    /* md */
+    .modal-panel-mypage {
+        margin-left: 5rem;
+        /* md:ml-20 */
+    }
+}
+
+/* 인라인 스피너 스타일 */
+.loading-spinner-styles {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    /* 라이트 모드 */
+}
+
+html.dark .loading-spinner-styles {
+    background: rgba(0, 0, 0, 0.2);
+    /* 다크 모드 */
+}
+
+.loading-spinner-inner-styles {
+    /* 마이페이지 모달 안의 스피너 */
+    height: 10rem;
+    /* h-40 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    /* text-gray-500 */
+}
+
+html.dark .loading-spinner-inner-styles {
+    color: #9ca3af;
+    /* dark:text-gray-400 */
+}
+
+/* 드롭다운 패널의 스타일 (baccara_analyzer.html에서 사용) */
+.dropdown-panel-styles {
+    /* Tailwind 클래스로 대부분 처리되었지만, 만약 추가적인 CSS 속성이 필요하다면 여기에 정의 */
+}
+
+/* 설정 아이콘 보더 제거 */
+.no-border-button {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    background-color: transparent !important;
+    /* 배경색도 투명하게 */
+}
