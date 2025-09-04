@@ -24,10 +24,11 @@ def baccara_analyzer_view(request):
         or "windows phone" in user_agent_string
     ):
         is_mobile = True
+    # device_mode 값을 명확한 문자열로 전달
     device_mode = "Mobile" if is_mobile else "PC"
     print(
-        f"DEBUG: device_mode from view = '{device_mode}'"
-    )  # <--- 디버깅용 print, 따옴표 추가
+        f"DEBUG: device_mode from view = '{device_mode}' (Type: {type(device_mode)})"
+    )  # <--- 디버깅용 print, 타입 정보 추가
 
     history_box_rows = []
     for i in range(1, 5):

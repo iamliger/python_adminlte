@@ -49,8 +49,6 @@ html.dark * {
 /* ==================================== */
 
 :root {
-    --scrollbar-height-allowance: 10px;
-
     --checker-size: 32px;
     /* PC 본매 격자 셀 크기 (정사각형) */
     --icon-padding: 2px;
@@ -60,7 +58,7 @@ html.dark * {
 
     --history-checker-size: 20px;
     /* PC 히스토리 바둑판 격자 셀 크기 (정사각형) */
-    --history-icon-padding: 2px;
+    --history-icon-padding: 1px;
     /* 히스토리 아이템 내부 패딩 */
     --history-icon-font-size: 14px;
     /* PC 히스토리 아이템 폰트 크기 */
@@ -70,7 +68,7 @@ html.dark * {
 
     --main-padding-x: 8px;
     /* main 태그 내 각 섹션의 좌우 패딩 */
-    --grid-gap-x: 2px;
+    --grid-gap-x: 10px;
     /* 그리드 가로 간격 (2px) */
     --grid-gap-y: 6px;
     /* 그리드 세로 간격 (10px) - 사용자 요청 반영 */
@@ -129,6 +127,7 @@ html.dark {
 
         --history-checker-size: 16px;
         /* 모바일 히스토리 바둑판 격자 크기 */
+        --history-icon-padding: 1px;
         --history-icon-font-size: 10px;
         /* 모바일 히스토리 아이템 폰트 크기 */
 
@@ -243,8 +242,10 @@ html.dark #main-roadmap-container {
     padding: 0;
     grid-auto-columns: var(--checker-size);
     grid-template-rows: repeat(6, var(--checker-size));
-    place-items: center;
-    /* <--- 각 셀 내 아이템 중앙 정렬 */
+    justify-items: center;
+    /* <--- 아이템이 셀 내에서 수평 중앙에 오도록 (선택 사항) */
+    align-items: center;
+    /* <--- 아이템이 셀 내에서 수직 중앙에 오도록 (선택 사항) */
 }
 
 
@@ -253,38 +254,33 @@ html.dark #main-roadmap-container {
     position: relative;
     overflow: hidden;
     align-self: start !important;
-    /* <--- !important 추가: 그리드 아이템이 늘어나지 않도록 강제 */
     flex-shrink: 0;
-    /* flex 컨테이너 안에서 줄어들지 않도록 명시 */
     min-height: 0;
-    /* 일부 브라우저/컨텍스트에서 flex/grid 아이템의 min-height 기본값이 height를 덮어쓰는 것을 방지 */
 }
 
 /* 히스토리보드 간격 조정 */
 .grid.grid-cols-2 {
     align-items: start !important;
-    /* 그리드 아이템들이 늘어나지 않도록 강제 */
     row-gap: var(--grid-gap-y) !important;
-    /* 세로 간격 10px */
     column-gap: var(--grid-gap-x) !important;
-    /* 가로 간격 2px */
     margin-top: var(--grid-gap-y) !important;
-    /* 히스토리보드 전체 상단 마진 */
     margin-bottom: var(--grid-gap-y) !important;
-    /* 히스토리보드 전체 하단 마진 */
     padding: 0 var(--main-padding-x);
-
-        {
-        # 좌우 패딩 적용 #
-    }
-
     box-sizing: border-box;
 }
 
 @media (min-width: 640px) {
     :root {
-        --main-padding-x: 8px;
-        /* PC main 태그 좌우 패딩을 8px로 설정 */
+        --checker-size: 32px !important;
+        --icon-font-size: 20px !important;
+
+        --history-checker-size: 20px !important;
+        --history-icon-padding: 2px !important;
+        --history-icon-font-size: 12px !important;
+
+        --main-padding-x: 8px !important;
+        --grid-gap-x: 10px !important;
+        --grid-gap-y: 6px !important;
     }
 
     /* sm 이상 */
@@ -297,10 +293,22 @@ html.dark #main-roadmap-container {
 }
 
 [id^="history-grid-"] {
-    display: inline-grid;
+    display: grid;
+    /* <--- inline-grid 대신 display: grid 사용 */
     grid-auto-columns: var(--history-checker-size);
-    grid-template-rows: repeat(6, var(--history-checker-size)) !important;
-    place-items: center;
+    /* HTML에서 grid-template-rows를 직접 정의하지만, CSS에서 !important로 우선순위 부여 */
+    grid-template-rows: repeat(var(--rows-count), var(--history-checker-size)) !important;
+    /* <--- !important 유지 #}
+    place-items: center; /* 각 셀 내 아이템 중앙 정렬 유지 */
+    justify-items: center;
+    /* 수평 중앙정렬 강화 */
+    align-items: center;
+    /* 수직 중앙정렬 강화 */
+    width: max-content;
+    /* 아이템 수에 따라 너비 확장 */
+    min-width: 100%;
+    /* 최소한 부모 너비는 차지 */
+    box-sizing: border-box;
 }
 
 .history-scroll-wrapper {
@@ -319,14 +327,9 @@ html.dark #main-roadmap-container {
     display: none;
 }
 
-[id^="history-grid-"] {
+/* [id^="history-grid-"] {
     display: inline-grid;
-    grid-auto-columns: var(--history-checker-size);
-    grid-template-rows: repeat(6, var(--history-checker-size)) !important;
-    place-items: center;
-    width: max-content;
-    min-width: 100%;
-}
+} */
 
 /* ==================================== */
 /* --- 4. 아이콘 및 UI 요소 스타일 --- */
@@ -336,25 +339,34 @@ html.dark #main-roadmap-container {
 .baccarat-circle,
 .history-circle {
     border-radius: 9999px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    /* <--- display: flex 대신 display: grid 사용 */
+    place-items: center;
+    /* <--- 내부 콘텐츠를 셀의 정중앙에 배치 (grid 컨텍스트에서 더 효과적) */
     font-weight: bold;
     color: white;
     flex-shrink: 0;
-    width: calc(100% - (var(--icon-padding) * 2));
-    height: calc(100% - (var(--icon-padding) * 2));
+    /* 셀 크기 - (패딩 * 2) */
     box-sizing: border-box;
     padding: 0;
+    /* 내부 패딩은 icon-padding 변수로 관리 */
     margin: auto;
+    /* <--- 아이템 자체를 셀 내에서 중앙 정렬 (유지) */
+    line-height: 1;
 }
 
 .baccarat-circle {
     font-size: var(--icon-font-size);
+    line-height: var(--icon-font-size);
+    width: calc(var(--checker-size) - (var(--icon-padding) * 2));
+    height: calc(var(--checker-size) - (var(--icon-padding) * 2));
 }
 
 .history-circle {
+    width: calc(var(--history-checker-size) - (var(--history-icon-padding) * 2)) !important;
+    height: calc(var(--history-checker-size) - (var(--history-icon-padding) * 2)) !important;
     font-size: var(--history-icon-font-size);
+    line-height: var(--history-icon-font-size);
 }
 
 /* 타입별 원 아이콘 색상 */

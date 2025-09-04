@@ -345,23 +345,21 @@ function displayPredictions(predictions, selectedLogic) {
     }
 
     if (!predictions || !selectedLogic || predictions.length === 0) {
-        pageHeader.__alpine_component.predictionHtml = ''; // 예측 없으면 초기화
+        // 예측 데이터가 없으면 predictionHtml을 null로 설정
+        pageHeader.__alpine_component.predictionHtml = null; // <--- null로 설정
         return;
     }
 
     const htmlParts = predictions.map(p => {
         const patternKey = p.patternKey;
         const currentStep = logicState[patternKey] || 1;
-        // moneyArrStep이 정의되지 않았거나 비어있을 경우를 대비한 안전 로직
-        const amountStr = (moneyArrStep && moneyArrStep[currentStep - 1]) ? addComma(moneyArrStep[currentStep - 1]) : '...';
+        const amountStr = (moneyArrStep && moneyArrStep.length > 0 && moneyArrStep[currentStep - 1] !== undefined) ? addComma(moneyArrStep[currentStep - 1]) : '...';
         const bettingPosHtml = renderBettingPosition(p.bettingpos);
 
-        // p.measu가 undefined, null, 빈 문자열일 경우 빈 문자열로 처리
         const measuDisplay = (p.measu !== undefined && p.measu !== null && p.measu !== '') ? `[${p.measu}매]` : '';
-        // p.display_name이 없을 경우 patternKey 사용
-        const displayName = p.display_name || patternKey;
+        const displayName = p.display_name || (patternKey ? patternKey.replace(/_/g, ' ').replace('pattern', '').trim() : '로직');
 
-        // 최종 메시지 형식: [로직 이름]: (P 2,000 [X매] (Y단계))
+        console.log(displayName, bettingPosHtml, amountStr, measuDisplay);
         return `<div class="flex items-center gap-1 text-sm">
                     <span class="font-semibold text-gray-400">${displayName}:</span>
                     <div class="flex items-center gap-1">${bettingPosHtml} ${amountStr} ${measuDisplay} (${currentStep}단계)</div>
@@ -442,6 +440,8 @@ async function addHistoryItemClientSide(type, button) {
     drawRoadmaps(type, currentActionItems);
     updateStateAndSave(type, currentActionItems);
     updateAnalyticsChart();
+
+    readjustHistoryScrollPosition();
 }
 
 function drawRoadmaps(type, currentActionItems) {
@@ -503,6 +503,8 @@ function drawRoadmaps(type, currentActionItems) {
             };
         }
     }
+
+    if (mainRoadmapGrid) scrollToRightEnd('main-roadmap-container');
 }
 
 function updateStateAndSave(type, currentActionItems) {
@@ -598,6 +600,7 @@ function undoLastActionClientSide() {
     }
     updateAnalyticsChart();
     updateActiveStepUI();
+    readjustHistoryScrollPosition();
 
     hideSpinner();
 }
@@ -1056,6 +1059,90 @@ function getCookie(name) {
     return cookieValue;
 }
 
+function calculateVisibleCols(gridId) {
+    const gridElement = document.getElementById(gridId);
+    if (!gridElement) return 0;
+
+    const parentScrollWrapper = gridElement.parentElement; // .history-scroll-wrapper
+    if (!parentScrollWrapper) return 0;
+
+    const gridComputedStyle = window.getComputedStyle(gridElement);
+    const gridAutoColumns = gridComputedStyle.getPropertyValue('grid-auto-columns');
+    // 'var(--history-checker-size)' 형태의 값을 실제 픽셀 값으로 파싱해야 합니다.
+    // 이는 복잡하므로, 가장 간단하게 `--history-checker-size` CSS 변수를 직접 가져와 사용합니다.
+    const historyCheckerSize = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--history-checker-size'));
+
+    if (isNaN(historyCheckerSize) || historyCheckerSize === 0) {
+        console.warn(`--history-checker-size is not a valid number for ${gridId}`);
+        return 0;
+    }
+
+    const wrapperWidth = parentScrollWrapper.offsetWidth; // 스크롤 래퍼의 실제 너비 (padding 포함)
+
+    // 가로 간격(column-gap)도 고려해야 합니다.
+    const gridContainer = parentScrollWrapper.parentElement; // history-box-X
+    const gridContainerStyle = window.getComputedStyle(gridContainer);
+    const columnGap = parseFloat(gridContainerStyle.columnGap) || 0; // 부모 그리드의 column-gap
+
+    // `history-grid`의 좌우 padding도 고려 (현재는 0으로 설정되어 있음)
+    const gridPaddingLeft = parseFloat(gridComputedStyle.paddingLeft) || 0;
+    const gridPaddingRight = parseFloat(gridComputedStyle.paddingRight) || 0;
+
+    // wrapperWidth에서 그리드 자체의 padding과 gap을 제외한 순수 콘텐츠 영역 계산
+    // 이 로직은 `[id^="history-grid-"]`에 `width: max-content`와 `min-width: 100%`를
+    // 적용했을 때, `wrapperWidth` 안에 몇 개의 셀이 들어갈 수 있는지 계산합니다.
+
+    // 아이템 사이의 gap 개수는 (보이는 열 수 - 1) 입니다.
+    // (보이는 열 수 * 셀 크기) + (보이는 열 수 - 1) * 갭 크기 <= wrapperWidth
+    // 이 방정식 풀어서 보이는 열 수(maxCols) 찾기
+    let maxCols = 0;
+    let currentWidth = 0;
+    while (true) {
+        let tentativeWidth = (maxCols * historyCheckerSize) + (Math.max(0, maxCols - 1) * columnGap);
+        if (tentativeWidth <= wrapperWidth) {
+            maxCols++;
+        } else {
+            break;
+        }
+    }
+    return Math.max(1, maxCols - 1); // 최소 1개 열은 보이도록
+}
+
+function readjustHistoryScrollPosition() {
+    for (let i = 1; i <= 4; i++) {
+        const scrollWrapperId = `history-scroll-wrapper-${i}`;
+        const gridId = `history-grid-${i}`;
+        const scrollWrapper = document.getElementById(scrollWrapperId);
+        const gridElement = document.getElementById(gridId);
+
+        if (!scrollWrapper || !gridElement) continue;
+
+        // 현재 뷰포트에서 최대로 보여줄 수 있는 열의 수를 계산
+        const maxVisibleCols = calculateVisibleCols(gridId);
+        if (maxVisibleCols === 0) continue;
+
+        // 현재 히스토리 그리드에 있는 총 열의 수
+        const totalCols = gridElement.children.length > 0
+            ? Math.max(...Array.from(gridElement.children).map(item => parseInt(item.style.gridColumn)))
+            : 0;
+
+        if (totalCols === 0) { // 아이템이 없으면 스크롤할 필요 없음
+            scrollWrapper.scrollLeft = 0;
+            continue;
+        }
+
+        // 맨 마지막 아이템이 포함된 열 번호 (1-based)
+        const lastItemCol = totalCols;
+
+        // 맨 마지막 아이템이 화면에 보이도록 스크롤 위치를 조정
+        // (lastItemCol - maxVisibleCols) * historyCheckerSize
+        const historyCheckerSize = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--history-checker-size'));
+        const columnGap = parseFloat(getComputedStyle(gridElement.parentElement.parentElement).columnGap) || 0;
+
+        let scrollTargetLeft = (lastItemCol - maxVisibleCols) * (historyCheckerSize + columnGap);
+        scrollWrapper.scrollLeft = Math.max(0, scrollTargetLeft);
+    }
+}
 
 // ====================================
 // --- 이벤트 리스너 및 초기화 ---
@@ -1245,6 +1332,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inlineChartInstance) {
         updateAnalyticsChart();
     }
+
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            console.log("해상도 변경 감지! 히스토리보드 스크롤 재조정.");
+            readjustHistoryScrollPosition();
+            // 필요하다면, redrawAllGrids()를 호출하여 격자 자체를 다시 그릴 수도 있지만,
+            // 현재는 스크롤 위치 조정에 집중합니다.
+        }, 200); // 200ms 디바운스
+    });
+
+    // 초기 로드 시에도 스크롤 위치 한번 조정
+    readjustHistoryScrollPosition();
 
     window.addEventListener('beforeunload', function (e) {
         var confirmationMessage = '정말로 새로고침 하시겠습니까? 데이터가 소실될 수 있습니다.';

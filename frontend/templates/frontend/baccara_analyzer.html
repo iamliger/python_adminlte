@@ -7,14 +7,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>바카라 분석기</title>
     <link rel="shortcut icon" href="{% static 'frontend/img/favicon.ico' %}" type="image/x-icon">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Tabler Icons -->
     <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet">
+    <!-- Tailwind CSS -->
     <link rel="stylesheet" href="{% static 'frontend/css/output.css' %}">
+    <!-- 커스텀 CSS -->
     <link rel="stylesheet" href="{% static 'frontend/css/baccara.css' %}">
 
+    <!-- HTMX CDN -->
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <!-- Alpine.js CDN -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
+    <!-- Chart.js 및 Plugin -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
@@ -23,6 +30,7 @@
 <body class="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100">
 
     <div class="min-h-screen flex flex-col">
+        <!-- 헤더 -->
         <header id="page-header"
             x-data="{ totMoney: '초기금액 0 셋팅 하였습니다.', predictionHtml: '' }"
             x-init="
@@ -43,6 +51,7 @@
                 <i class="ti ti-currency-won ml-2 cursor-pointer mobile-icon-large" @click="openModal('won-modal')"></i>
                 {% endif %}
                 <span x-text="totMoney" class="text-xl font-semibold text-gray-800 dark:text-gray-100 truncate md:text-2xl"></span>
+                <!-- 예측 메시지 오버레이 토스트 -->
                 <div x-html="predictionHtml" id="persistent-prediction-toast"
                      class="toast-header-prediction" x-show="predictionHtml !== ''"
                      x-transition:enter="transition ease-out duration-300"
@@ -54,6 +63,7 @@
                 </div>
             </div>
 
+            <!-- Alpine.js를 사용한 설정 드롭다운 메뉴 (사이드바 대체) -->
             <div x-data="{ openSettings: false, isDarkMode: localStorage.getItem('theme') === 'dark' || window.matchMedia('(prefers-color-scheme: dark)').matches }"
                  x-init="$watch('isDarkMode', value => { document.documentElement.classList.toggle('dark', value); localStorage.setItem('theme', value ? 'dark' : 'light'); });"
                  class="relative ml-auto flex-shrink-0">
@@ -61,6 +71,7 @@
                     <i class="ti ti-settings text-2xl"></i>
                 </button>
 
+                <!-- 드롭다운 패널 -->
                 <div x-show="openSettings" @click.away="openSettings = false"
                      x-transition:enter="transition ease-out duration-100"
                      x-transition:enter-start="transform opacity-0 scale-95"
@@ -87,9 +98,10 @@
             </div>
         </header>
 
-        <main class="flex-1 flex flex-col overflow-y-auto"> {# p-0 sm:p-1 padding 클래스 제거 #}
+        <!-- 실제 콘텐츠 영역 -->
+        <main class="flex-1 flex flex-col overflow-y-auto">
             <!-- 1. 상단 정보 및 버튼 -->
-            <div class="main-content-section flex flex-wrap justify-between items-center gap-1 mb-1 flex-shrink-0"> {# px-2 sm:px-3 클래스 제거, main-content-section 클래스 추가 #}
+            <div class="flex flex-wrap justify-between items-center gap-1 mb-1 flex-shrink-0 px-2 sm:px-3">
                 <div class="flex flex-wrap items-center gap-1">
                     <button id="player-btn"
                         class="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm shadow mobile-button-text">플레이어
@@ -100,6 +112,8 @@
                         <span id="banker-count" class="font-semibold ml-1">0</span></button>
                 </div>
                 <div class="flex items-center gap-1 flex-wrap">
+                    {# device_mode에 따라 PC와 모바일 UI를 조건부 렌더링 #}
+                    {# 문자열 비교를 위해 "PC"를 직접 비교합니다. #}
                     {% if device_mode == "PC" %}
                     <div id="logic-btn-group" role="radiogroup" class="hidden sm:flex items-center rounded-md shadow-sm">
                         <button type="button" role="radio" aria-checked="true" data-value="logic1"
@@ -119,7 +133,7 @@
                             로직4
                         </button>
                     </div>
-                    {% else %} {# device_mode가 Mobile일 경우 #}
+                    {% else %} {# device_mode가 "Mobile"일 경우 #}
                     <div x-data="{ selectedLogic: localStorage.getItem('game_env_{{ member_id }}') ? (JSON.parse(localStorage.getItem('game_env_{{ member_id }}')).selectedLogic || 'logic1') : 'logic1' }"
                          x-init="$watch('selectedLogic', value => {
                              let settings = loadSavedSettings();
@@ -146,7 +160,7 @@
             </div>
 
             <!-- 2. 단계별 금액 라벨 -->
-            <div class="main-content-section mb-1 flex-shrink-0"> {# px-2 sm:px-3 클래스 제거, main-content-section 클래스 추가 #}
+            <div class="mb-1 flex-shrink-0 px-2 sm:px-3">
                 <div id="money-step-wrapper" class="transition-all duration-300">
                     <div id="money-step" class="flex flex-wrap gap-1 sm:gap-2 justify-start">
                         {% if not is_show_money_info %}
@@ -157,23 +171,24 @@
 
             <!-- 3. 본매 (메인 로드맵) 영역 -->
             <div id="main-roadmap-container"
-                class="main-roadmap-styles checkerboard-bg flex-shrink-0 mb-1 main-content-section"> {# px-2 sm:px-3 클래스 제거, main-content-section 클래스 추가 #}
+                class="main-roadmap-styles checkerboard-bg flex-shrink-0 mb-1 px-2 sm:px-3"
+                style="height: calc(var(--checker-size) * 6);">
                 <div id="roadmap-grid"
                     class="grid grid-rows-[repeat(6,var(--checker-size))] grid-auto-flow-column grid-auto-columns-[var(--checker-size)] w-max h-full place-items-center gap-0">
                 </div>
             </div>
 
             <!-- 4. 히스토리 보드 영역 -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-x-0.5 gap-y-0.5 mt-1 mb-1 flex-shrink-0"> {# flex-1 min-h-0 클래스 제거 #}
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-x-0.5 gap-y-0.5 mt-1 mb-1 flex-shrink-0 px-2 sm:px-3">
                 {% for row_count in history_box_rows %}
                 {% with forloop_counter=forloop.counter %}
                 <div id="history-box-{{ forloop_counter }}" data-rows="{{ row_count }}"
                     class="history-box-styles-base history-box-{{ forloop_counter }}-styles history-checkerboard-bg"
-                    style="height: calc(var(--history-checker-size) * {{ row_count }} + var(--scrollbar-height-allowance));">
-                    
-                    <div id="history-scroll-wrapper-{{ forloop_counter }}" class="history-scroll-wrapper"> 
+                    style="height: calc(var(--history-checker-size) * {{ row_count }});">
+                    <div id="history-scroll-wrapper-{{ forloop_counter }}" class="history-scroll-wrapper">
                         <div id="history-grid-{{ forloop_counter }}"
-                            class="inline-grid grid-rows-[repeat({{ row_count }},var(--history-checker-size))] grid-auto-flow-column grid-auto-columns-[var(--history-checker-size)] place-items-start gap-0">
+                            class="inline-grid grid-auto-flow-column grid-auto-columns-[var(--history-checker-size)] place-items-center gap-0"
+                            style="--rows-count: {{ row_count }}; grid-template-rows: repeat({{ row_count }}, var(--history-checker-size));">
                         </div>
                     </div>
                 </div>
@@ -182,7 +197,8 @@
             </div>
 
             <!-- 5. 콘솔/차트 영역 -->
-            <div id="interactive-area" class="relative console-box-container flex-shrink-0 console-height-adjust mt-1 console-full-width"> {# px-2 sm:px-3 제거, console-full-width 유지 #}
+            <div id="interactive-area" class="relative console-box-container flex-shrink-0 console-height-adjust mt-1 px-2 sm:px-3">
+
                 <div id="console-wrapper" class="toggle-view">
                     <div class="console-box" id="console"></div>
                 </div>
@@ -209,7 +225,7 @@
 
             <!-- 6. 하단 버튼 -->
             <div
-                class="flex flex-wrap justify-between items-center gap-2 mt-1 pt-1 border-t border-gray-200 dark:border-gray-700 flex-shrink-0 main-content-section"> {# px-2 sm:px-3 클래스 제거, main-content-section 클래스 추가 #}
+                class="flex flex-wrap justify-between items-center gap-2 mt-1 pt-1 border-t border-gray-200 dark:border-gray-700 flex-shrink-0 px-2 sm:px-3">
                 <div class="flex flex-wrap items-center gap-2">
                     <button id="reset-btn"
                         class="px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm shadow mobile-button-text">리셋</button>
