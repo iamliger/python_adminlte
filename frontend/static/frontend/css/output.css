@@ -648,6 +648,10 @@ video {
   position: sticky;
 }
 
+.inset-0 {
+  inset: 0px;
+}
+
 .right-0 {
   right: 0px;
 }
@@ -666,6 +670,10 @@ video {
 
 .z-50 {
   z-index: 50;
+}
+
+.z-\[10000\] {
+  z-index: 10000;
 }
 
 .mx-1 {
@@ -720,6 +728,10 @@ video {
 
 .mt-5 {
   margin-top: 1.25rem;
+}
+
+.mt-6 {
+  margin-top: 1.5rem;
 }
 
 .block {
@@ -778,10 +790,6 @@ video {
   height: 100%;
 }
 
-.min-h-0 {
-  min-height: 0px;
-}
-
 .min-h-screen {
   min-height: 100vh;
 }
@@ -800,6 +808,10 @@ video {
 
 .w-5 {
   width: 1.25rem;
+}
+
+.w-96 {
+  width: 24rem;
 }
 
 .w-full {
@@ -906,10 +918,6 @@ video {
   flex-wrap: wrap;
 }
 
-.place-items-start {
-  place-items: start;
-}
-
 .place-items-center {
   place-items: center;
 }
@@ -961,22 +969,10 @@ video {
   margin-left: calc(0.5rem * calc(1 - var(--tw-space-x-reverse)));
 }
 
-.space-x-3 > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-x-reverse: 0;
-  margin-right: calc(0.75rem * var(--tw-space-x-reverse));
-  margin-left: calc(0.75rem * calc(1 - var(--tw-space-x-reverse)));
-}
-
 .space-y-3 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-y-reverse: 0;
   margin-top: calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));
   margin-bottom: calc(0.75rem * var(--tw-space-y-reverse));
-}
-
-.space-y-4 > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-y-reverse: 0;
-  margin-top: calc(1rem * calc(1 - var(--tw-space-y-reverse)));
-  margin-bottom: calc(1rem * var(--tw-space-y-reverse));
 }
 
 .overflow-y-auto {
@@ -987,6 +983,10 @@ video {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.rounded-2xl {
+  border-radius: 1rem;
 }
 
 .rounded-full {
@@ -1054,6 +1054,11 @@ video {
 
 .border-transparent {
   border-color: transparent;
+}
+
+.bg-black {
+  --tw-bg-opacity: 1;
+  background-color: rgb(0 0 0 / var(--tw-bg-opacity, 1));
 }
 
 .bg-blue-100 {
@@ -1171,8 +1176,8 @@ video {
   background-color: rgb(113 63 18 / 0.5);
 }
 
-.p-0 {
-  padding: 0px;
+.bg-opacity-50 {
+  --tw-bg-opacity: 0.5;
 }
 
 .p-1 {
@@ -1284,6 +1289,10 @@ video {
 .text-xs {
   font-size: 0.75rem;
   line-height: 1rem;
+}
+
+.font-bold {
+  font-weight: 700;
 }
 
 .font-medium {
@@ -1594,11 +1603,6 @@ video {
   --tw-ring-color: rgb(156 163 175 / var(--tw-ring-opacity, 1));
 }
 
-.focus\:ring-gray-500:focus {
-  --tw-ring-opacity: 1;
-  --tw-ring-color: rgb(107 114 128 / var(--tw-ring-opacity, 1));
-}
-
 .focus\:ring-indigo-500:focus {
   --tw-ring-opacity: 1;
   --tw-ring-color: rgb(99 102 241 / var(--tw-ring-opacity, 1));
@@ -1755,10 +1759,6 @@ video {
 
   .sm\:gap-3 {
     gap: 0.75rem;
-  }
-
-  .sm\:p-1 {
-    padding: 0.25rem;
   }
 
   .sm\:p-8 {

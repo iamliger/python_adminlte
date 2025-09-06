@@ -48,7 +48,7 @@
             
             <div class="flex-1 flex items-center justify-start gap-2 h-full relative">
                 {% if device_mode == "Mobile" %}
-                <i class="ti ti-currency-won ml-2 cursor-pointer mobile-icon-large" @click="openModal('won-modal')"></i>
+                <i class="ti ti-currency-won ml-2 cursor-pointer mobile-icon-large" @click="openModal('won-modal', $el)"></i>
                 {% endif %}
                 <span x-text="totMoney" class="text-xl font-semibold text-gray-800 dark:text-gray-100 truncate md:text-2xl"></span>
                 <!-- 예측 메시지 오버레이 토스트 -->
@@ -62,29 +62,28 @@
                      x-transition:leave-end="opacity-0 translate-y-full">
                 </div>
             </div>
-
+            
             <!-- Alpine.js를 사용한 설정 드롭다운 메뉴 (사이드바 대체) -->
             <div x-data="{ openSettings: false, isDarkMode: localStorage.getItem('theme') === 'dark' || window.matchMedia('(prefers-color-scheme: dark)').matches }"
-                 x-init="$watch('isDarkMode', value => { document.documentElement.classList.toggle('dark', value); localStorage.setItem('theme', value ? 'dark' : 'light'); });"
-                 class="relative ml-auto flex-shrink-0">
+                x-init="$watch('isDarkMode', value => { document.documentElement.classList.toggle('dark', value); localStorage.setItem('theme', value ? 'dark' : 'light'); });"
+                class="relative ml-auto flex-shrink-0">
                 <button @click="openSettings = !openSettings" type="button" class="flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white mobile-icon-large no-border-button" aria-expanded="false" aria-haspopup="true" aria-label="설정 메뉴 열기">
                     <i class="ti ti-settings text-2xl"></i>
                 </button>
 
                 <!-- 드롭다운 패널 -->
                 <div x-show="openSettings" @click.away="openSettings = false"
-                     x-transition:enter="transition ease-out duration-100"
-                     x-transition:enter-start="transform opacity-0 scale-95"
-                     x-transition:enter-end="transform opacity-100 scale-100"
-                     x-transition:leave="transition ease-in duration-75"
-                     x-transition:leave-start="transform opacity-100 scale-100"
-                     x-transition:leave-end="transform opacity-0 scale-95"
-                     class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-50 dropdown-panel-styles"
-                     role="menu" aria-orientation="vertical" aria-labelledby="settings-menu-button">
+                    x-transition:enter="transition ease-out duration-100"
+                    x-transition:enter-start="transform opacity-0 scale-95"
+                    x-transition:enter-end="transform opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-75"
+                    x-transition:leave-start="transform opacity-100 scale-100"
+                    x-transition:leave-end="transform opacity-0 scale-95"
+                    class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-50 dropdown-panel-styles"
+                    role="menu" aria-orientation="vertical" aria-labelledby="settings-menu-button">
                     <div class="py-1" role="none">
-                        <a href="{% url 'frontend:baccara_analyzer' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">홈</a>
                         <a href="#" @click.prevent="openModal('mypage-content-modal'); openSettings = false;" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">마이페이지</a>
-                        <a href="#" @click.prevent="openModal('setting-box-modal'); openSettings = false;" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">환경설정</a>
+                        <a href="#" @click.prevent="console.log('환경설정 클릭'); openModal('setting-box-modal'); openSettings = false;" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">환경설정</a>
                         <button @click="isDarkMode = !isDarkMode; openSettings = false;" class="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">
                             <i :class="isDarkMode ? 'ti ti-sun' : 'ti ti-moon'" class="text-lg mr-2"></i>
                             다크모드
@@ -96,6 +95,7 @@
                     </div>
                 </div>
             </div>
+            <!-- ... (나머지 내용 유지) ... -->
         </header>
 
         <!-- 실제 콘텐츠 영역 -->
@@ -112,10 +112,8 @@
                         <span id="banker-count" class="font-semibold ml-1">0</span></button>
                 </div>
                 <div class="flex items-center gap-1 flex-wrap">
-                    {# device_mode에 따라 PC와 모바일 UI를 조건부 렌더링 #}
-                    {# 문자열 비교를 위해 "PC"를 직접 비교합니다. #}
-                    {% if device_mode == "PC" %}
-                    <div id="logic-btn-group" role="radiogroup" class="hidden sm:flex items-center rounded-md shadow-sm">
+                    {# 모바일/PC 구분 없이 항상 버튼 그룹을 표시 (사용자 요청) #}
+                    <div id="logic-btn-group" role="radiogroup" class="flex items-center rounded-md shadow-sm"> {# hidden sm:flex 클래스 제거, flex 유지 #}
                         <button type="button" role="radio" aria-checked="true" data-value="logic1"
                             class="logic-btn relative inline-flex items-center px-3 py-1 rounded-l-md border border-gray-300 bg-indigo-600 text-sm font-medium text-white hover:bg-indigo-700 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 dark:border-gray-600 mobile-button-text">
                             로직1
@@ -133,24 +131,7 @@
                             로직4
                         </button>
                     </div>
-                    {% else %} {# device_mode가 "Mobile"일 경우 #}
-                    <div x-data="{ selectedLogic: localStorage.getItem('game_env_{{ member_id }}') ? (JSON.parse(localStorage.getItem('game_env_{{ member_id }}')).selectedLogic || 'logic1') : 'logic1' }"
-                         x-init="$watch('selectedLogic', value => {
-                             let settings = loadSavedSettings();
-                             settings.selectedLogic = value;
-                             localStorage.setItem(GAMEENV_KEY, JSON.stringify(settings));
-                         });"
-                         class="relative mobile-select-container flex items-center">
-                        <span class="px-2 py-1 text-white rounded-md text-sm shadow mobile-button-text">패턴로직</span>
-                        <select x-model="selectedLogic" title="패턴 로직 선택"
-                                class="pattern-select block w-auto pl-2 pr-8 py-1 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 mobile-select-text">
-                            <option value="logic1">로직1</option>
-                            <option value="logic2">로직2</option>
-                            <option value="logic3">로직3</option>
-                            <option value="logic4">로직4</option>
-                        </select>
-                    </div>
-                    {% endif %}
+                    {# 기존 모바일 셀렉트 박스 div와 조건문 전체 제거 #}
 
                     <span class="px-2 py-1 bg-gray-500 text-white rounded-md text-sm shadow mobile-button-text">합: <span
                             id="total-count" class="font-semibold ml-1">0</span></span>
@@ -160,7 +141,9 @@
             </div>
 
             <!-- 2. 단계별 금액 라벨 -->
-            <div class="mb-1 flex-shrink-0 px-2 sm:px-3">
+            <div class="mb-1 flex-shrink-0 px-2 sm:px-3" x-data="{ moneyInfoVisible: false }"
+            x-init="moneyInfoVisible = loadSavedSettings().moneyInfoVisible;"
+            x-show="moneyInfoVisible">
                 <div id="money-step-wrapper" class="transition-all duration-300">
                     <div id="money-step" class="flex flex-wrap gap-1 sm:gap-2 justify-start">
                         {% if not is_show_money_info %}
@@ -188,7 +171,7 @@
                     <div id="history-scroll-wrapper-{{ forloop_counter }}" class="history-scroll-wrapper">
                         <div id="history-grid-{{ forloop_counter }}"
                             class="inline-grid grid-auto-flow-column grid-auto-columns-[var(--history-checker-size)] place-items-center gap-0"
-                            style="--rows-count: {{ row_count }}; grid-template-rows: repeat({{ row_count }}, var(--history-checker-size));">
+                            style="--rows-count: {{ row_count }}; grid-template-rows: repeat({{ row_count }}, var(--history-checker-size)) !important;">
                         </div>
                     </div>
                 </div>
@@ -197,7 +180,10 @@
             </div>
 
             <!-- 5. 콘솔/차트 영역 -->
-            <div id="interactive-area" class="relative console-box-container flex-shrink-0 console-height-adjust mt-1 px-2 sm:px-3">
+            <div id="interactive-area" class="relative console-box-container flex-shrink-0 console-height-adjust mt-1 px-2 sm:px-3"
+                x-data="{ showConsoleEnable: true }"
+                x-init="showConsoleEnable = loadSavedSettings().showConsoleEnable;"
+                x-show="showConsoleEnable">
 
                 <div id="console-wrapper" class="toggle-view">
                     <div class="console-box" id="console"></div>

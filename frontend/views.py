@@ -45,3 +45,11 @@ def baccara_analyzer_view(request):
         "history_box_rows": history_box_rows,
     }
     return render(request, "frontend/baccara_analyzer.html", context)
+
+
+def mypage_view(request):  # <--- 더미 마이페이지 뷰 추가
+    context = {
+        "user_info": "여기는 마이페이지 정보가 표시될 곳입니다.",
+        "game_stats": "여기는 사용자 게임 통계가 표시될 곳입니다.",
+    }
+    return render(request, "frontend/mypage_content.html", context)

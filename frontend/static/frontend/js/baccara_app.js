@@ -80,26 +80,62 @@ function loadSavedSettings() {
 }
 
 function applySettings(settings) {
+    console.log("applySettings 호출됨:", settings); // <--- 디버깅 로그 추가
     applyVisibility('money-step-wrapper', settings.moneyInfoVisible);
     applyVisibility('interactive-area', settings.showConsoleEnable);
     updateLogicButtonsUI(settings.selectedLogic);
 }
 
 function updateLogicButtonsUI(selectedValue) {
-    if (DeviceMode === "PC" && logicBtnGroup && logicButtons.length > 0) {
+    console.log('updateLogicButtonsUI called', selectedValue);
+    if (logicBtnGroup && logicButtons.length > 0) {
         logicButtons.forEach(button => {
             const isActive = button.dataset.value === selectedValue;
             button.setAttribute('aria-checked', isActive);
+            console.log(`button.dataset.value:${button.dataset.value}, selectedValue:${selectedValue}, isActive:${isActive}`);
+
+            // 모든 버튼의 기본 클래스 (공통된 스타일)
+            const baseClasses = "relative inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium shadow mobile-button-text";
+            const darkBorderClass = "dark:border-gray-600";
+            const focusClasses = "focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500";
+            const roundedLeft = "rounded-l-md";
+            const roundedRight = "rounded-r-md";
+            const marginLeft = "-ml-px"; // 가운데 버튼에만 적용
+
+            // 버튼의 현재 라운딩 및 마진 상태를 유지해야 합니다.
+            let currentRoundingClass = '';
+            if (button.classList.contains(roundedLeft)) currentRoundingClass = roundedLeft;
+            else if (button.classList.contains(roundedRight)) currentRoundingClass = roundedRight;
+
+            let currentMarginClass = '';
+            if (button.classList.contains(marginLeft)) currentMarginClass = marginLeft;
+
             if (isActive) {
-                button.classList.add('bg-indigo-600', 'text-white');
-                button.classList.remove('bg-white', 'text-gray-700', 'dark:bg-gray-700', 'dark:text-gray-200');
+                // 활성화된 버튼에 적용할 클래스 조합
+                button.className = `${baseClasses} ${focusClasses} ${currentRoundingClass} ${currentMarginClass} ${darkBorderClass} bg-indigo-600 text-white hover:bg-indigo-700`;
             } else {
-                button.classList.remove('bg-indigo-600', 'text-white');
-                button.classList.add('bg-white', 'text-gray-700', 'dark:bg-gray-700', 'dark:text-gray-200');
+                // 비활성화된 버튼에 적용할 클래스 조합
+                button.className = `${baseClasses} ${focusClasses} ${currentRoundingClass} ${currentMarginClass} ${darkBorderClass} bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600`;
             }
+            // `button.className = ...` 방식을 사용하면 기존 클래스가 모두 덮어씌워지므로,
+            // `rounded-l-md`, `-ml-px` 등의 클래스도 다시 설정해 주어야 합니다.
+            // 또는, `classList.remove` 및 `classList.add`를 사용하여 필요한 클래스만 토글합니다.
+            // 이전 방식인 `classList.add`와 `classList.remove`를 사용하되, 모든 관련 클래스를 명시합니다.
+
+            if (isActive) {
+                button.classList.add('bg-indigo-600', 'text-white', 'hover:bg-indigo-700');
+                button.classList.remove('bg-white', 'text-gray-700', 'hover:bg-gray-50', 'dark:bg-gray-700', 'dark:text-gray-200', 'dark:hover:bg-gray-600');
+            } else {
+                button.classList.remove('bg-indigo-600', 'text-white', 'hover:bg-indigo-700');
+                button.classList.add('bg-white', 'text-gray-700', 'hover:bg-gray-50', 'dark:bg-gray-700', 'dark:text-gray-200', 'dark:hover:bg-gray-600');
+            }
+            // border 클래스 (`border`, `border-gray-300`, `dark:border-gray-600`) 및 `focus` 클래스는
+            // 항상 유지되어야 하는 공통 클래스이므로, 토글 대상에서 제외합니다.
+            // `-ml-px`나 `rounded-l-md`, `rounded-r-md` 같은 레이아웃 클래스도 유지되어야 합니다.
         });
     }
 }
+
 
 function showSpinner() {
     const spinner = document.getElementById('loading-spinner');
@@ -341,15 +377,35 @@ function displayPredictions(predictions, selectedLogic) {
     const pageHeader = document.getElementById('page-header');
     if (!pageHeader || !pageHeader.__alpine_component) {
         console.warn("Alpine.js header component not found for predictions.");
+        // pageHeader.__alpine_component가 없으면 직접 DOM을 조작하여 임시로 표시
+        const headerPredToast = document.getElementById('persistent-prediction-toast');
+        if (headerPredToast) {
+            if (!predictions || !selectedLogic || predictions.length === 0) {
+                headerPredToast.innerHTML = '';
+                headerPredToast.style.display = 'none';
+            } else {
+                const htmlParts = predictions.map(p => { /* ... 기존 htmlParts 생성 로직 ... */
+                    const patternKey = p.patternKey;
+                    const currentStep = logicState[patternKey] || 1;
+                    const amountStr = (moneyArrStep && moneyArrStep.length > 0 && moneyArrStep[currentStep - 1] !== undefined) ? addComma(moneyArrStep[currentStep - 1]) : '...';
+                    const bettingPosHtml = renderBettingPosition(p.bettingpos);
+
+                    const measuDisplay = (p.measu !== undefined && p.measu !== null && p.measu !== '') ? `[${p.measu}매]` : '';
+                    const displayName = p.display_name || (patternKey ? patternKey.replace(/_/g, ' ').replace('pattern', '').trim() : '로직');
+
+                    return `<div class="flex items-center gap-1 text-sm">
+                                <span class="font-semibold text-gray-400">${displayName}:</span>
+                                <div class="flex items-center gap-1">${bettingPosHtml} ${amountStr} ${measuDisplay} (${currentStep}단계)</div>
+                            </div>`;
+                }).join('<div class="w-px h-5 bg-white/20 mx-1"></div>');
+                headerPredToast.innerHTML = `<div class="flex items-center justify-center w-full gap-2">${htmlParts}</div>`;
+                headerPredToast.style.display = 'flex';
+            }
+        }
         return;
     }
 
-    if (!predictions || !selectedLogic || predictions.length === 0) {
-        // 예측 데이터가 없으면 predictionHtml을 null로 설정
-        pageHeader.__alpine_component.predictionHtml = null; // <--- null로 설정
-        return;
-    }
-
+    // ... (Alpine.js 컴포넌트가 있을 때의 기존 로직 유지) ...
     const htmlParts = predictions.map(p => {
         const patternKey = p.patternKey;
         const currentStep = logicState[patternKey] || 1;
@@ -359,7 +415,6 @@ function displayPredictions(predictions, selectedLogic) {
         const measuDisplay = (p.measu !== undefined && p.measu !== null && p.measu !== '') ? `[${p.measu}매]` : '';
         const displayName = p.display_name || (patternKey ? patternKey.replace(/_/g, ' ').replace('pattern', '').trim() : '로직');
 
-        console.log(displayName, bettingPosHtml, amountStr, measuDisplay);
         return `<div class="flex items-center gap-1 text-sm">
                     <span class="font-semibold text-gray-400">${displayName}:</span>
                     <div class="flex items-center gap-1">${bettingPosHtml} ${amountStr} ${measuDisplay} (${currentStep}단계)</div>
@@ -758,16 +813,36 @@ function updateActiveStepUI() {
 }
 
 window.openModal = function (modalId) {
-    const modalElement = document.getElementById(modalId);
-    if (modalElement) {
-        modalElement.dispatchEvent(new CustomEvent('modal-open', { bubbles: true }));
-    }
+    console.log(`openModal(${modalId}) 호출됨`);
+    window.dispatchEvent(new CustomEvent('modal-open', { detail: { modalId: modalId } }));
 };
 
 window.closeModal = function (modalId) {
-    const modalElement = document.getElementById(modalId);
-    if (modalElement) {
-        modalElement.dispatchEvent(new CustomEvent('modal-close', { bubbles: true }));
+    console.log(`closeModal(${modalId}) 호출됨`);
+    window.dispatchEvent(new CustomEvent('modal-close', { detail: { modalId: modalId } }));
+};
+
+window.saveSettings = function () {
+    console.log("saveSettings() called!");
+    const modalElement = document.getElementById('setting-box-modal');
+    if (modalElement && modalElement.__alpine_component) {
+        const alpineComponent = modalElement.__alpine_component;
+        const settings = {
+            gameSettingEnabled: alpineComponent.gameSettingEnabled,
+            moneyInfoVisible: alpineComponent.moneyInfoVisible,
+            soundSettingEnable: alpineComponent.soundSettingEnable,
+            showConsoleEnable: alpineComponent.showConsoleEnable,
+            virtualBettingEnabled: alpineComponent.virtualBettingEnabled
+        };
+        localStorage.setItem(GAMEENV_KEY, JSON.stringify(settings));
+        console.log("모든 설정이 로컬 스토리지에 저장됨:", settings);
+
+        // 설정 저장 후 UI 업데이트 적용
+        applyVisibility('money-step-wrapper', settings.moneyInfoVisible);
+        applyVisibility('interactive-area', settings.showConsoleEnable);
+        updateLogicButtonsUI(settings.selectedLogic); // 선택 로직도 다시 적용
+    } else {
+        console.error("saveSettings() - Alpine.js component not found for setting-box-modal.");
     }
 };
 
@@ -832,9 +907,13 @@ function applyVisibility(elementId, isVisible) {
 };
 
 
-function showMoneyInfoPop(moneyArray) {
+function showMoneyInfoPop(modalElement, moneyArray) {
     if (!moneyArray) return;
-    const moneyInfo = document.getElementById('won-modal-body');
+    const moneyInfo = modalElement.querySelector('#won-modal-body');
+    if (!moneyInfo) {
+        console.error("Money info modal body element not found in:", modalElement);
+        return;
+    }
     moneyInfo.innerHTML = '';
     let total = 0,
         html = '';
@@ -848,16 +927,22 @@ function showMoneyInfoPop(moneyArray) {
     moneyInfo.innerHTML = html;
 }
 
-async function loadAndOpenMyPageModal_Alpine(url, modalId) {
-    const modalBody = document.getElementById('mypage-modal-body-content');
-    const loadingIndicator = document.getElementById('mypage-modal-loading');
-    if (!modalBody) return;
+async function loadAndOpenMyPageModal_Alpine(url, modalElement) {
+    const modalBody = modalElement.querySelector('#mypage-modal-body-content');
+    const loadingIndicator = modalElement.querySelector('#mypage-modal-loading');
+    if (!modalBody) {
+        console.error("Modal body element not found in:", modalElement);
+        return;
+    }
 
     if (loadingIndicator) loadingIndicator.classList.remove('hidden');
     modalBody.innerHTML = '';
 
     try {
-        const response = await fetch(`${url}?content_only=1`, {
+        // `DJANGO_CONTEXT.G5Url + 'mypage.php'` 대신 Django URL 패턴을 사용합니다.
+        const djangoMypageUrl = '{% url "frontend:mypage" %}'; // <--- Django URL 템플릿 태그 사용
+        // 이 JS 파일은 Django 템플릿에 의해 직접 렌더링되므로 템플릿 태그 사용 가능
+        const response = await fetch(`${djangoMypageUrl}?content_only=1`, {
             credentials: 'include'
         });
         if (response.ok) {
@@ -1167,33 +1252,42 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     copyBtn = document.getElementById('view-copy-btn');
 
+    // 이벤트 리스너 등록 (if 조건문으로 감싸서 요소 존재 여부 확인)
+    if (playerBtn) playerBtn.addEventListener('click', (e) => { console.log('Player button clicked', e.target); addHistoryItemClientSide('player', playerBtn); });
+    if (bankerBtn) bankerBtn.addEventListener('click', (e) => { console.log('Banker button clicked', e.target); addHistoryItemClientSide('banker', bankerBtn); });
+    if (cancelBtn) cancelBtn.addEventListener('click', (e) => { console.log('Cancel button clicked', e.target); undoLastActionClientSide(); });
+    if (resetBtn) resetBtn.addEventListener('click', (e) => { console.log('Reset button clicked', e.target); resetHistoryClientSide(); });
+    if (copyBtn) copyBtn.addEventListener('click', (e) => { console.log('Copy button clicked', e.target); copyConsoleToClipboard(); });
 
-    // 이벤트 리스너 등록
-    if (playerBtn) playerBtn.addEventListener('click', () => addHistoryItemClientSide('player', playerBtn));
-    if (bankerBtn) bankerBtn.addEventListener('click', () => addHistoryItemClientSide('banker', bankerBtn));
-    if (cancelBtn) cancelBtn.addEventListener('click', undoLastActionClientSide);
-    if (resetBtn) resetBtn.addEventListener('click', resetHistoryClientSide);
-    if (copyBtn) copyBtn.addEventListener('click', copyConsoleToClipboard);
 
-    // PC용 로직 버튼 그룹 이벤트 리스너 (DOMContentLoaded 내부에 배치)
-    if (DeviceMode === "PC" && logicBtnGroup) {
-        logicBtnGroup.addEventListener('click', (event) => {
-            const clickedButton = event.target.closest('.logic-btn');
-            if (!clickedButton) return;
-            const newValue = clickedButton.dataset.value;
+    // 로직 버튼 그룹 이벤트 리스너 (DOMContentLoaded 내부에 배치)
+    if (logicBtnGroup) { // logicBtnGroup이 존재할 때만
+        const currentLogicButtons = logicBtnGroup.querySelectorAll('.logic-btn'); // DOMContentLoaded 내에서 다시 찾음
+        currentLogicButtons.forEach(button => {
+            button.addEventListener('click', (event) => {
+                console.log('--- 로직 버튼 개별 클릭 감지 ---');
+                console.log('event.target (클릭된 원본 요소):', event.target);
+                console.log('클릭된 버튼 (button):', button);
 
-            updateLogicButtonsUI(newValue);
+                const newValue = button.dataset.value; // 직접 버튼에서 dataset.value 가져옴
+                console.log('선택된 로직 값 (newValue):', newValue);
 
-            let settings = loadSavedSettings();
-            settings.selectedLogic = newValue;
-            localStorage.setItem(GAMEENV_KEY, JSON.stringify(settings));
+                updateLogicButtonsUI(newValue);
+                console.log('updateLogicButtonsUI 호출됨.');
 
-            showToast('center', `선택된 로직이 '${newValue}'(으)로 변경되어 저장되었습니다.`, {
-                type: 'info',
-                duration: 1000,
-                position: 'center'
+                let settings = loadSavedSettings();
+                settings.selectedLogic = newValue;
+                localStorage.setItem(GAMEENV_KEY, JSON.stringify(settings));
+                console.log('로컬 스토리지에 로직 저장됨:', settings.selectedLogic);
+
+                showToast('center', `선택된 로직이 '${newValue}'(으)로 변경되어 저장되었습니다.`, {
+                    type: 'info',
+                    duration: 1000,
+                    position: 'center'
+                });
+                addConsoleMessage(`선택된 로직이 '${newValue}'(으)로 변경되어 저장되었습니다.`, 'system');
+                console.log('showToast 및 addConsoleMessage 호출됨.');
             });
-            addConsoleMessage(`선택된 로직이 '${newValue}'(으)로 변경되어 저장되었습니다.`, 'system');
         });
     }
 
@@ -1222,6 +1316,15 @@ document.addEventListener('DOMContentLoaded', () => {
             pageHeader.__alpine_component.totMoney = '초기금액 ' + Number(moneyArrStep[0]).toLocaleString() + ' 셋팅 하였습니다.';
         } else {
             pageHeader.__alpine_component.totMoney = '초기금액 0 셋팅 하였습니다.';
+        }
+    }
+
+    // 새로 추가된 스크롤 문제 해결을 위한 히스토리 스크롤 래퍼 ID 할당 로직
+    for (let i = 1; i <= 4; i++) {
+        const wrapper = document.querySelector(`#history-box-${i} .history-scroll-wrapper`);
+        if (wrapper) {
+            wrapper.id = `history-scroll-wrapper-${i}`; // ID 할당
+            console.log(`History scroll wrapper ${i} assigned ID: ${wrapper.id}`);
         }
     }
 
@@ -1360,9 +1463,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 30000);
 
-    // Alpine.js 모달을 제어하기 위한 이벤트 리스너 추가
     document.querySelectorAll('.modal-base').forEach(modalElement => {
-        if (modalElement.__alpine_component) { // modalElement.__alpine_component로 수정
+        if (modalElement.__alpine_component) {
             modalElement.addEventListener('modal-open', () => {
                 modalElement.__alpine_component.open = true;
             });
@@ -1371,5 +1473,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     });
+
+    // 초기 로딩 시 `is_show_money_info`가 true이면 `moneystepinfo-modal` 열기
+    if (DJANGO_CONTEXT.isShowMoneyInfo) {
+        console.log("DJANGO_CONTEXT.isShowMoneyInfo가 true여서 moneystepinfo-modal을 엽니다.");
+        //openModal('moneystepinfo-modal');
+    }
+
 
 });

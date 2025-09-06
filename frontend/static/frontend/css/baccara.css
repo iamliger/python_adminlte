@@ -1,4 +1,7 @@
 /* frontend/static/frontend/css/baccara.css */
+[x-cloak] {
+    display: none !important;
+}
 
 /* ==================================== */
 /* --- 1. 스크롤바 기본 스타일 --- */
@@ -654,18 +657,22 @@ html.dark .pattern-select option {
 .modal-base {
     position: fixed;
     inset: 0;
-    z-index: 50;
-    /* Tailwind z-50 */
-    display: flex;
+    z-index: 9999;
     align-items: center;
     justify-content: center;
-    background-color: rgba(0, 0, 0, 0.5);
-    /* bg-black bg-opacity-50 */
-    transition-property: opacity;
-    transition-duration: 300ms;
-    transition-timing-function: ease-in-out;
+    background-color: rgba(0, 0, 0, 0.1);
     padding: 1rem;
-    /* p-4 */
+}
+
+.modal-panel-base {
+    position: relative;
+    width: 100%;
+    border-radius: 1rem;
+    background-color: #ffffff;
+    padding: 1.5rem;
+    text-align: left;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    z-index: 9999;
 }
 
 .modal-base-wide {
