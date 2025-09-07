@@ -1236,6 +1236,19 @@ function readjustHistoryScrollPosition() {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOMContentLoaded 이벤트 발생!');
 
+    // --- 초기 테마 로드 ---
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const applyDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+    if (applyDark) {
+        document.documentElement.classList.add('dark');
+        console.log('초기 테마: 다크모드');
+    } else {
+        document.documentElement.classList.remove('dark');
+        console.log('초기 테마: 라이트모드');
+    }
+    // -----------------------
+
     // DOMContentLoaded 시점에 요소 참조를 업데이트
     playerBtn = document.getElementById('player-btn');
     bankerBtn = document.getElementById('banker-btn');

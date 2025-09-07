@@ -32,19 +32,34 @@
     <div class="min-h-screen flex flex-col">
         <!-- 헤더 -->
         <header id="page-header"
-            x-data="{ totMoney: '초기금액 0 셋팅 하였습니다.', predictionHtml: '' }"
-            x-init="
-                window.updateHeaderInfo = (money, prediction) => {
-                    totMoney = money;
-                    predictionHtml = prediction;
-                };
-                if (moneyArrStep && moneyArrStep.length > 0) {
-                    totMoney = '초기금액 ' + Number(moneyArrStep[0]).toLocaleString() + ' 셋팅 하였습니다.';
-                } else {
-                    totMoney = '초기금액 0 셋팅 하였습니다.';
-                }
-            "
-            class="bg-white dark:bg-gray-800 shadow-md h-16 flex items-center px-4 sticky top-0 z-20 flex-shrink-0 justify-between">
+        x-data="{ 
+            totMoney: '초기금액 0 셋팅 하였습니다.',
+            predictionHtml: '',
+            isDarkMode: localStorage.getItem('theme') === 'dark' || window.matchMedia('(prefers-color-scheme: dark)').matches }"
+        x-init="
+            console.log('header x-init: isDarkMode 초기값:', isDarkMode);
+            window.updateHeaderInfo = (money, prediction) => {
+                totMoney = money;
+                predictionHtml = prediction;
+            };
+            if (moneyArrStep && moneyArrStep.length > 0) {
+                totMoney = '초기금액 ' + Number(moneyArrStep[0]).toLocaleString() + ' 셋팅 하였습니다.';
+            } else {
+                totMoney = '초기금액 0 셋팅 하였습니다.';
+            }
+
+            // isDarkMode 상태 변화 감지 및 html 태그 업데이트, localStorage 저장
+            $watch('isDarkMode', value => {
+                console.log('isDarkMode $watch: 새로운 값:', value);
+                document.documentElement.classList.toggle('dark', value);
+                localStorage.setItem('theme', value ? 'dark' : 'light');
+                console.log('localStorage theme 저장됨:', localStorage.getItem('theme'));
+            });
+
+            // 페이지 로드 시 초기 테마 적용 (isDarkMode 값에 따라 html 태그에 dark 클래스 적용)
+            document.documentElement.classList.toggle('dark', isDarkMode);
+        "
+        class="bg-white dark:bg-gray-800 shadow-md h-16 flex items-center px-4 sticky top-0 z-20 flex-shrink-0 justify-between">
             
             <div class="flex-1 flex items-center justify-start gap-2 h-full relative">
                 {% if device_mode == "Mobile" %}
@@ -82,12 +97,20 @@
                     class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-50 dropdown-panel-styles"
                     role="menu" aria-orientation="vertical" aria-labelledby="settings-menu-button">
                     <div class="py-1" role="none">
-                        <a href="#" @click.prevent="openModal('mypage-content-modal'); openSettings = false;" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">마이페이지</a>
+                        <a href="#" @click.prevent="console.log('마이페이지 버튼 클릭됨'); openModal('mypage-content-modal'); openSettings = false;" 
+                            class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" 
+                            role="menuitem" data-open="mypage-content-modal">마이페이지</a>
+
+                        <!-- <a href="#" @click.prevent="console.log('금액설정 버튼 클릭됨'); openModal('moneystepinfo-modal'); openSettings = false;" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem" data-open="moneystepinfo-modal">금액설정</a>
+                        <a href="#" @click.prevent="console.log('원 표시 모달 버튼 클릭됨'); openModal('won-modal'); openSettings = false;" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem" data-open="won-modal">원표시</a>
+                        <a href="#" @click.prevent="console.log('알럿 모달 버튼 클릭됨'); openModal('alert-modal'); openSettings = false;" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem" data-open="alert-modal">알림모달</a> -->
                         <a href="#" @click.prevent="console.log('환경설정 클릭'); openModal('setting-box-modal'); openSettings = false;" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">환경설정</a>
+
                         <button @click="isDarkMode = !isDarkMode; openSettings = false;" class="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">
                             <i :class="isDarkMode ? 'ti ti-sun' : 'ti ti-moon'" class="text-lg mr-2"></i>
-                            다크모드
+                            <span x-text="isDarkMode ? '라이트모드' : '다크모드'">
                         </button>
+
                         <a href="{% url 'accounts:logout' %}" class="block px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">로그아웃</a>
                         {% if member_level >= 5 %}
                         <a href="/admin/" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">관리자</a>
@@ -244,6 +267,7 @@
             deviceMode: "{{ device_mode }}",
             G5BbsUrl: "{{ G5_BBS_URL }}",
             G5Url: "{{ G5_URL }}",
+            mypageUrl: "{% url 'frontend:mypage' %}",
         };
     </script>
     <!-- main JS file -->

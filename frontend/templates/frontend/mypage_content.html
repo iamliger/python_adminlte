@@ -1,7 +1,63 @@
-<!-- frontend/templates/frontend/mypage_content.html -->
-<div class="text-gray-800 dark:text-gray-100 p-4">
-    <h4 class="text-xl font-semibold mb-4">내 정보</h4>
-    <p>{{ user_info }}</p>
-    <h4 class="text-xl font-semibold mt-6 mb-4">게임 통계</h4>
-    <p>{{ game_stats }}</p>
+<!-- 5. frontend/templates/frontend/mypage_content.html 생성 -->
+<!-- 이 파일이 없다면 새로 생성해주세요 -->
+
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+        <!-- 사용자 정보 섹션 -->
+        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">사용자 정보</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">사용자 ID</label>
+                    <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ member_id }}</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">권한 레벨</label>
+                    <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ member_level }}</p>
+                </div>
+                {% if user.is_authenticated %}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">이메일</label>
+                    <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ user.email|default:"설정되지 않음" }}</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">가입일</label>
+                    <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ user.date_joined|date:"Y-m-d" }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 게임 통계 섹션 -->
+        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">게임 통계</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                    <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">0</div>
+                    <div class="text-sm text-blue-700 dark:text-blue-300">총 게임 수</div>
+                </div>
+                <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                    <div class="text-2xl font-bold text-green-600 dark:text-green-400">0%</div>
+                    <div class="text-sm text-green-700 dark:text-green-300">승률</div>
+                </div>
+                <div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+                    <div class="text-2xl font-bold text-purple-600 dark:text-purple-400">0</div>
+                    <div class="text-sm text-purple-700 dark:text-purple-300">연속 승리</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 설정 섹션 -->
+        <div class="p-6">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">계정 설정</h2>
+            <div class="space-y-4">
+                <button class="w-full md:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium">
+                    프로필 수정
+                </button>
+                <button class="w-full md:w-auto px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md text-sm font-medium ml-0 md:ml-2">
+                    비밀번호 변경
+                </button>
+            </div>
+        </div>
+    </div>
 </div>

@@ -657,7 +657,8 @@ html.dark .pattern-select option {
 .modal-base {
     position: fixed;
     inset: 0;
-    z-index: 9999;
+    z-index: 50;
+    /* display: flex; */
     align-items: center;
     justify-content: center;
     background-color: rgba(0, 0, 0, 0.1);
@@ -672,7 +673,7 @@ html.dark .pattern-select option {
     padding: 1.5rem;
     text-align: left;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-    z-index: 9999;
+    z-index: 60;
 }
 
 .modal-base-wide {
@@ -681,6 +682,64 @@ html.dark .pattern-select option {
     /* pt-10 */
     padding-bottom: 2.5rem;
     /* pb-10 */
+}
+
+/* 헤더 */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+/* 제목 */
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+/* 닫기 버튼 */
+.modal-close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    padding: 0.25rem;
+}
+
+/* 본문 */
+.modal-body {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+/* 로딩 인디케이터 */
+.loading-indicator {
+    display: flex;
+    align-items: center;
+    color: #666;
+}
+
+/* 푸터 */
+.modal-footer {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* 닫기 버튼 스타일 */
+.btn-secondary {
+    background-color: #ccc;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: .5rem;
+    cursor: pointer;
+}
+
+.btn-secondary:hover {
+    background-color: #bbb;
 }
 
 @media (min-width: 640px) {
