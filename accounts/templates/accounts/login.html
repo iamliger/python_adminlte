@@ -1,0 +1,87 @@
+<!-- accounts/templates/accounts/login.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인</title>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="shortcut icon" href="{% static 'frontend/img/favicon.ico' %}" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'frontend/css/output.css' %}">
+    <link rel="stylesheet" href="{% static 'frontend/css/baccara.css' %}">
+</head>
+<body class="bg-gray-200 dark:bg-gray-900 flex items-center justify-center min-h-screen font-sans antialiased text-gray-800 dark:text-gray-100">
+    <div class="w-full max-w-sm mx-auto p-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-300 dark:border-gray-700">
+        <h2 class="text-3xl font-extrabold text-center text-gray-900 dark:text-white mb-8">로그인</h2>
+        
+        {% if form.errors %}
+            <div class="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-300 px-4 py-3 rounded-md relative text-sm mb-6" role="alert">
+                <strong class="font-bold">로그인 실패!</strong>
+                <span class="block sm:inline ml-2">이메일 또는 비밀번호를 다시 확인해주세요.</span>
+            </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'login' %}" class="space-y-6">
+            {% csrf_token %}
+            
+            {# 이메일 입력 필드 (아이콘 포함) #}
+            <div>
+                <label for="{{ form.username.id_for_label }}" class="sr-only">이메일 주소</label>
+                <div class="relative rounded-md shadow-sm">
+                    {# 아이콘을 오른쪽으로 정렬 #}
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <i class="ti ti-user text-gray-400 dark:text-gray-500"></i> {# 사용자 아이콘 #}
+                    </div>
+                    {{ form.username }}
+                </div>
+                {% if form.username.errors %}
+                    <ul class="text-red-500 text-xs mt-1">
+                        {% for error in form.username.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+
+            {# 비밀번호 입력 필드 (아이콘 포함) #}
+            <div x-data="{ showPassword: false }"> {# Alpine.js 상태 관리 추가 #}
+                <label for="{{ form.password.id_for_label }}" class="sr-only">비밀번호</label>
+                <div class="relative rounded-md shadow-sm">
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                        <button type="button" @click="showPassword = !showPassword" class="focus:outline-none text-gray-400 dark:text-gray-500" aria-label="Toggle password visibility"> {# 토글 버튼 추가 #}
+                            <i class="ti" :class="showPassword ? 'ti-eye-off' : 'ti-eye'"></i> {# 아이콘 동적 변경 #}
+                        </button>
+                    </div>
+                    <input type="password" x-bind:type="showPassword ? 'text' : 'password'" {# type 속성 동적 바인딩 #}
+                           name="{{ form.password.name }}" id="{{ form.password.id_for_label }}"
+                           class="appearance-none block w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
+                           placeholder="비밀번호" autocomplete="current-password" required>
+                </div>
+                {% if form.password.errors %}
+                    <ul class="text-red-500 text-xs mt-1">
+                        {% for error in form.password.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+
+            <button type="submit"
+                    class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition duration-150 ease-in-out">
+                로그인
+            </button>
+        </form>
+
+        {% comment %}
+        <div class="text-center mt-6">
+            <p class="text-sm text-gray-600 dark:text-gray-400">계정이 없으신가요? 
+                <a href="{% url 'accounts:register' %}" class="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition duration-150 ease-in-out">회원가입</a>
+            </p>
+        </div>
+        {% endcomment %}
+    </div>
+</body>
+</html>

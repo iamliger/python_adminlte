@@ -1,5 +1,8 @@
-<!-- 5. frontend/templates/frontend/mypage_content.html 생성 -->
-<!-- 이 파일이 없다면 새로 생성해주세요 -->
+<!-- frontend/templates/frontend/mypage_content.html -->
+{% comment %}
+    mypage_view에서 context로 `user` 객체를 넘겨주고 있으므로,
+    여기서 request.user 대신 user를 직접 사용할 수 있습니다.
+{% endcomment %}
 
 <div class="max-w-4xl mx-auto">
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
@@ -9,11 +12,11 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">사용자 ID</label>
-                    <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ member_id }}</p>
+                    <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ user.username }}</p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">권한 레벨</label>
-                    <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ member_level }}</p>
+                    <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ user.level }}</p>
                 </div>
                 {% if user.is_authenticated %}
                 <div>
@@ -28,7 +31,7 @@
             </div>
         </div>
 
-        <!-- 게임 통계 섹션 -->
+        <!-- 게임 통계 섹션 (더미 데이터 유지) -->
         <div class="p-6 border-b border-gray-200 dark:border-gray-700">
             <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">게임 통계</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">

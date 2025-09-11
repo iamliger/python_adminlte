@@ -1,3 +1,4 @@
+{# frontend/templates/frontend/baccara_analyzer.html #}
 {% load static %}
 <!DOCTYPE html>
 <html lang="ko" class="dark">
@@ -6,22 +7,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>바카라 분석기</title>
-    <link rel="shortcut icon" href="{% static 'frontend/img/favicon.ico' %}" type="image/x-icon">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Tabler Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet">
-    <!-- Tailwind CSS -->
-    <link rel="stylesheet" href="{% static 'frontend/css/output.css' %}">
-    <!-- 커스텀 CSS -->
-    <link rel="stylesheet" href="{% static 'frontend/css/baccara.css' %}">
-
-    <!-- HTMX CDN -->
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <!-- Alpine.js CDN -->
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
-    <!-- Chart.js 및 Plugin -->
+    <link rel="shortcut icon" href="{% static 'frontend/img/favicon.ico' %}" type="image/x-icon">    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">    
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet">    
+    <link rel="stylesheet" href="{% static 'frontend/css/output.css' %}">    
+    <link rel="stylesheet" href="{% static 'frontend/css/baccara.css' %}">    
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>    
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>    
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
@@ -32,10 +24,7 @@
     <div class="min-h-screen flex flex-col">
         <!-- 헤더 -->
         <header id="page-header"
-        x-data="{ 
-            totMoney: '초기금액 0 셋팅 하였습니다.',
-            predictionHtml: '',
-            isDarkMode: localStorage.getItem('theme') === 'dark' || window.matchMedia('(prefers-color-scheme: dark)').matches }"
+        x-data="{ totMoney: '초기금액 0 셋팅 하였습니다.', predictionHtml: '본매: [B] ... (1단계)', isDarkMode: localStorage.getItem('theme') ? (localStorage.getItem('theme') === 'dark') : true }"
         x-init="
             console.log('header x-init: isDarkMode 초기값:', isDarkMode);
             window.updateHeaderInfo = (money, prediction) => {
@@ -97,23 +86,27 @@
                     class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-50 dropdown-panel-styles"
                     role="menu" aria-orientation="vertical" aria-labelledby="settings-menu-button">
                     <div class="py-1" role="none">
-                        <a href="#" @click.prevent="console.log('마이페이지 버튼 클릭됨'); openModal('mypage-content-modal'); openSettings = false;" 
-                            class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" 
-                            role="menuitem" data-open="mypage-content-modal">마이페이지</a>
+                        {% if user.is_authenticated %}
+                            <a href="#" @click.prevent="console.log('마이페이지 버튼 클릭됨'); openModal('mypage-content-modal'); openSettings = false;" 
+                                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" 
+                                role="menuitem" data-open="mypage-content-modal">마이페이지</a>
 
-                        <!-- <a href="#" @click.prevent="console.log('금액설정 버튼 클릭됨'); openModal('moneystepinfo-modal'); openSettings = false;" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem" data-open="moneystepinfo-modal">금액설정</a>
-                        <a href="#" @click.prevent="console.log('원 표시 모달 버튼 클릭됨'); openModal('won-modal'); openSettings = false;" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem" data-open="won-modal">원표시</a>
-                        <a href="#" @click.prevent="console.log('알럿 모달 버튼 클릭됨'); openModal('alert-modal'); openSettings = false;" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem" data-open="alert-modal">알림모달</a> -->
-                        <a href="#" @click.prevent="console.log('환경설정 클릭'); openModal('setting-box-modal'); openSettings = false;" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">환경설정</a>
+                            <a href="#" @click.prevent="console.log('환경설정 클릭'); openModal('setting-box-modal'); openSettings = false;" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">환경설정</a>
 
-                        <button @click="isDarkMode = !isDarkMode; openSettings = false;" class="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">
-                            <i :class="isDarkMode ? 'ti ti-sun' : 'ti ti-moon'" class="text-lg mr-2"></i>
-                            <span x-text="isDarkMode ? '라이트모드' : '다크모드'">
-                        </button>
+                            <!-- <a href="#" @click.prevent="openModal('alert-modal'); openSettings = false;" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">알림모달</a> -->
 
-                        <a href="{% url 'accounts:logout' %}" class="block px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">로그아웃</a>
-                        {% if member_level >= 5 %}
-                        <a href="/admin/" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">관리자</a>
+                            <button @click="isDarkMode = !isDarkMode; openSettings = false; console.log('다크모드 버튼 클릭됨. isDarkMode:', isDarkMode);" class="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem" aria-label="다크모드 토글">
+                                <i :class="isDarkMode ? 'ti ti-sun' : 'ti ti-moon'" class="text-lg mr-2"></i>
+                                <span x-text="isDarkMode ? '라이트모드' : '다크모드'"></span>
+                            </button>
+
+                            <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">로그아웃</a>
+                            {% if user.is_superuser or user.level == 10 %}
+                                <a href="{% url 'admin:index' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">관리자</a>
+                            {% endif %}
+                        {% else %} {# 로그인 안 된 경우 #}
+                            <!-- <a href="{% url 'login' %}" class="block px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">로그인</a> -->
+                            <!-- <a href="{% url 'accounts:register' %}" class="block px-4 py-2 text-sm text-green-600 dark:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 mobile-text-base" role="menuitem">회원가입</a> -->
                         {% endif %}
                     </div>
                 </div>
@@ -203,31 +196,18 @@
             </div>
 
             <!-- 5. 콘솔/차트 영역 -->
-            <div id="interactive-area" class="relative console-box-container flex-shrink-0 console-height-adjust mt-1 px-2 sm:px-3"
-                x-data="{ showConsoleEnable: true }"
-                x-init="showConsoleEnable = loadSavedSettings().showConsoleEnable;"
-                x-show="showConsoleEnable">
-
-                <div id="console-wrapper" class="toggle-view">
+            <div id="interactive-area" class="relative console-box-container flex-shrink-0 console-height-adjust mt-1 px-2 sm:px-3">
+                <div id="console-wrapper" class="toggle-view hidden">
                     <div class="console-box" id="console"></div>
                 </div>
-                <div id="chart-wrapper" class="toggle-view hidden">
+                <div id="chart-wrapper" class="toggle-view">
                     <div class="console-box">
                         <canvas id="analytics-chart-inline"></canvas>
                     </div>
                 </div>
-
+            
                 <div class="absolute top-0 right-0 flex gap-2 p-2 console-buttons-group">
-                    {% if member_level >= 5 %}
-                    <button id="view-copy-btn"
-                        class="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-md shadow-lg z-10 mobile-button-text">
-                        로그 복사
-                    </button>
-                    {% endif %}
-                    <button id="view-toggle-btn" data-current-view="console"
-                        class="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-md shadow-lg z-10 mobile-button-text">
-                        차트 보기
-                    </button>
+                    <button id="view-toggle-btn" data-current-view="chart" class="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-md shadow-lg z-10 mobile-button-text">콘솔 보기</button>
                 </div>
             </div>
 
@@ -240,8 +220,13 @@
                         class="px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm shadow mobile-button-text">리셋</button>
                 </div>
                 <div>
-                    <a href="{% url 'accounts:logout' %}"
-                        class="px-4 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm shadow inline-block mobile-button-text">로그아웃</a>
+                    {# 로그인 상태일 때만 로그아웃 버튼 표시. 헤더 드롭다운 메뉴에 이미 있으므로 주석 처리 #}
+                    
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'logout' %}"
+                            class="px-4 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm shadow inline-block mobile-button-text">로그아웃</a>
+                    {% endif %}
+                    
                 </div>
             </div>
 
@@ -265,9 +250,12 @@
             isShowMoneyInfo: {{ is_show_money_info|lower }}, // JavaScript boolean으로 변환
             moneyJson: JSON.parse('{{ money_json|escapejs }}'),
             deviceMode: "{{ device_mode }}",
-            G5BbsUrl: "{{ G5_BBS_URL }}",
-            G5Url: "{{ G5_URL }}",
+            G5BbsUrl: "{% url 'login' %}",
+            G5Url: "{% url 'root_redirect' %}",
             mypageUrl: "{% url 'frontend:mypage' %}",
+            csrfToken: "{{ csrf_token }}", // CSRF 토큰 추가
+            heartbeatApiUrl: "{% url 'api:heartbeat' %}",
+            broadcastMessageApiUrl: "{% url 'api:broadcast_message' %}",
         };
     </script>
     <!-- main JS file -->

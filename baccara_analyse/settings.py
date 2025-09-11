@@ -1,62 +1,58 @@
+# baccara_analyse/settings.py
+
 import os
 from pathlib import Path
+from django.urls import reverse_lazy
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles_collected")
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+LOCALE_PATHS = [os.path.join(BASE_DIR, "locale")]
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-cnn_6tt)m0umf3gh&=mf43&&69abdw_sp85%3knmh20uf*w6(8"
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
-
-# Application definition
+AUTH_USER_MODEL = "accounts.CustomUser"
 
 INSTALLED_APPS = [
-    "adminlte3_theme",
-    "adminlte3",
-    "accounts",
-    "game_data",
-    "django.contrib.admin",
+    "jazzmin",  # <-- 이 줄이 반드시 맨 처음에 와야 합니다! (Jazzmin 테마 로딩 최우선)
+    "django.contrib.admin",  # Admin 앱은 Jazzmin 바로 다음에 오는 것이 일반적
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_json_widget",  # JSON 위젯 라이브러리
+    "accounts.apps.AccountsConfig",
+    "game_data.apps.GameDataConfig",
     "rest_framework",
-    "api",  # 추가
-    "corsheaders",  # 추가
+    "api",
+    "corsheaders",
     "frontend",
-    # "user_agents",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "corsheaders.middleware.CorsMiddleware",  # 가장 위에 가깝게 위치
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    # "django_user_agents.middleware.UserAgentMiddleware",
 ]
 
-# React 개발 서버의 기본 포트는 3000입니다.
-# 실제 React 앱이 실행될 URL에 맞게 조정하세요.
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:8199",
+    "http://127.0.0.1:8199",
 ]
 
-# 추가 설정 (필요한 경우)
 CORS_ALLOW_METHODS = [
     "DELETE",
     "GET",
@@ -83,27 +79,21 @@ ROOT_URLCONF = "baccara_analyse.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, "frontend", "templates")],
-        "APP_DIRS": False,
+        "DIRS": [],
+        "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
+                "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-            ],
-            "loaders": [  # <--- 이 부분 추가: 템플릿 로더를 명시하여 캐시 비활성화
-                "django.template.loaders.filesystem.Loader",
-                "django.template.loaders.app_directories.Loader",
+                "baccara_analyse.core_utils.debug_context_processor",
             ],
         },
     },
 ]
 
 WSGI_APPLICATION = "baccara_analyse.wsgi.application"
-
-
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
     "default": {
@@ -116,44 +106,152 @@ DATABASES = {
     }
 }
 
+AUTH_PASSWORD_VALIDATORS = []
 
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+LOGIN_URL = "/login/"
+LOGIN_REDIRECT_URL = "/login/"
+LOGOUT_REDIRECT_URL = "/login/"
 
-AUTH_PASSWORD_VALIDATORS = [
-    # {
-    #     'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    # },
-    # {
-    #     'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    # },
-    # {
-    #     'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    # },
-    # {
-    #     'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    # },
+AUTHENTICATION_BACKENDS = [
+    "accounts.backends.EmailBackend",
+    "django.contrib.auth.backends.ModelBackend",
 ]
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
 
 LANGUAGE_CODE = "ko-kr"
 TIME_ZONE = "Asia/Seoul"
 USE_I18N = True
+USE_L10N = True  # 지역화 활성화 (숨겨진 설정 주의!)
 USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "frontend", "static"),
+    os.path.join(BASE_DIR, "accounts", "static"),
 ]
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# =========================================================================
+# JAZZMIN SETTINGS
+# =========================================================================
+JAZZMIN_SETTINGS = {
+    "site_title": "바카라 분석기 Admin",
+    "site_header": "바카라 Admin",
+    "welcome_sign": "바카라 분석기 관리자 페이지에 오신 것을 환영합니다.",
+    "copyright": "Liger",
+    "user_icon": "fas fa-user",
+    "changeform_format": "horizontal_tabs",
+    "custom_css": None,
+    "custom_js": None,
+    "show_ui_tweaks": True,
+    "custom_links": {
+        "accounts": [
+            {
+                "name": "현재 접속중인 사용자",
+                "url": "admin:accounts_currently_logged_in_users",
+                "icon": "fas fa-users-line",
+                "permissions": ["auth.view_user"],
+            }
+        ],
+        "game_data": [
+            {
+                "name": "바카라 전역 설정",
+                "url": "admin:game_data_baccaraconfig_change",
+                "icon": "fas fa-cogs",
+                "permissions": ["game_data.view_baccaraconfig"],
+            },
+            # "게임로직" 카테고리를 위한 로직2, 로직3 링크 (향후 활성화 예정)
+            # {
+            #     "name": "로직2 패턴 관리",
+            #     "url": "admin:game_data_logic2_patterns_manage", # 가상의 URL 이름
+            #     "icon": "fas fa-dice",
+            #     "permissions": ["game_data.view_baccaraconfig"],
+            # },
+            # {
+            #     "name": "로직3 패턴 관리",
+            #     "url": "admin:game_data_logic3_patterns_manage", # 가상의 URL 이름
+            #     "icon": "fas fa-th-list",
+            #     "permissions": ["game_data.view_baccaraconfig"],
+            # },
+        ],
+    },
+    "usermenu_links": [
+        # {
+        #     "name": "내 프로필 보기",
+        #     "url": "admin:auth_user_change",
+        #     "icon": "fas fa-user-circle",
+        #     "new_window": False,
+        # },
+        # # 비밀번호 변경 링크 추가
+        # {
+        #     "name": "비밀번호 변경",
+        #     "url": "admin:password_change",
+        #     "icon": "fas fa-key",
+        # },
+    ],
+    "order_with_respect_to": ["accounts", "game_data", "auth", "api", "frontend"],
+    "icons": {
+        "accounts.CustomUser": "fas fa-users",
+        "auth.Group": "fas fa-user-group",
+        "game_data.BroadcastMessage": "fas fa-bullhorn",
+        "game_data.BaccaraConfig": "fas fa-cogs",
+        "game_data.BaccaraDB": "fas fa-database",
+        "game_data.ThreeTicket": "fas fa-dice-one",
+        "game_data.FourTicket": "fas fa-dice-two",
+        "game_data.FiveTicket": "fas fa-dice-three",
+        "game_data.SixTicket": "fas fa-dice-four",
+        "game_data.ClsLog": "fas fa-clipboard-list",
+    },
+    "hide_models": [
+        "game_data.BaccaraDB",
+        "game_data.ThreeTicket",
+        "game_data.FourTicket",
+        "game_data.FiveTicket",
+        "game_data.SixTicket",
+        "game_data.ClsLog",
+        "game_data.BaccaraConfig",
+    ],
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": "navbar-dark",
+    "accent": "accent-primary",
+    "navbar": "navbar-dark navbar-primary",
+    "no_navbar_border": False,
+    "navbar_fixed": False,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": False,
+    "sidebar": "sidebar-dark-primary",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": False,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+    "theme": "darkly",
+    "dark_mode_theme": "darkly",
+    "button_classes": {
+        "primary": "btn-outline-primary",
+        "secondary": "btn-outline-secondary",
+        "info": "btn-outline-info",
+        "warning": "btn-outline-warning",
+        "danger": "btn-outline-danger",
+        "success": "btn-outline-success",
+    },
+}
+
+# =========================================================================
+# DJANGO JSON WIDGET SETTINGS
+# =========================================================================
+JSON_EDITOR_JS = (
+    "https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.10.2/jsoneditor.min.js"
+)
+JSON_EDITOR_CSS = (
+    "https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.10.2/jsoneditor.min.css"
+)

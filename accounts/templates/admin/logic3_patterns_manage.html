@@ -1,0 +1,258 @@
+{# accounts/templates/admin/logic3_patterns_manage.html #}
+{% extends "admin/base.html" %}
+{% load static %}
+{% load i18n %}
+{% load jazzmin %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet">
+    {# 우리의 커스텀 Admin 스타일을 먼저 로드하여 Admin 기본 스타일과의 충돌을 관리합니다. #}
+    <link rel="stylesheet" href="{% static 'accounts/admin/css/custom_admin_styles.css' %}">
+    {# Tailwind CSS output.css를 나중에 로드하여 우선순위를 높입니다. #}
+    <link rel="stylesheet" href="{% static 'frontend/css/output.css' %}">
+{% endblock extrastyle %}
+
+{% block messages %}
+    {# Django Admin이 자동으로 출력하는 기본 메시지 박스를 비웁니다. #}
+{% endblock messages %}
+
+{% block content_title %}
+    <h1>{{ title }}</h1>
+{% endblock content_title %}
+
+{% block content %}
+    <div id="content-main" class="p-4 bg-gray-100 dark:bg-gray-900 min-h-screen">
+        <div class="module">
+            <h2>{{ title }}</h2>
+            <div class="module-body bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mx-auto max-w-7xl">
+                {% if messages %}
+                    <ul class="messagelist" x-data="{}">
+                        {% for message in messages %}
+                            <li x-data="{ show: true }" x-show="show" x-transition.opacity
+                                {% if message.tags %} class="{{ message.tags }}"{% endif %}>
+                                <div>
+                                    <i class="icon fas fa-check"></i>
+                                    {{ message }}
+                                </div>
+                                <button type="button" @click="show = false" class="close" aria-hidden="true">&times;</button>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+
+                {# JSON 데이터를 숨겨진 스크립트 태그에 저장 #}
+                {{ sequences|json_script:"logic3_sequences_data" }}
+                {# pattern_count를 위한 별도의 스크립트 태그 #}
+                {% if pattern_count %}
+                    <script id="logic3_pattern_count_data" type="application/json">{{ pattern_count }}</script>
+                {% else %}
+                    <script id="logic3_pattern_count_data" type="application/json">1</script>
+                {% endif %}
+
+                <form name="flogic3" id="flogic3" action="{% url 'admin:accounts_logic3_patterns_manage' %}" method="post"
+                    x-data="{ 
+                        patternCountInput: 1,
+                        patterns: [],
+                        init() {
+                            const sequencesScriptTag = document.getElementById('logic3_sequences_data');
+                            if (sequencesScriptTag) {
+                                try {
+                                    this.patterns = JSON.parse(sequencesScriptTag.textContent);
+                                    globalDebugLog('[JS] Logic3 Patterns loaded:', this.patterns);
+                                } catch (e) {
+                                    console.error('Failed to parse Logic3 sequences JSON:', e);
+                                    globalDebugLog('[JS] Logic3 sequences JSON 파싱 실패! 기본값 사용.', e);
+                                    this.patterns = [Array(7).fill(1)];
+                                }
+                            } else {
+                                console.warn('logic3_sequences_data script tag not found. Using default patterns.');
+                                globalDebugLog('[JS] logic3_sequences_data script tag 없음. 기본값 사용.');
+                                this.patterns = [Array(7).fill(1)];
+                            }
+
+                            const patternCountScriptTag = document.getElementById('logic3_pattern_count_data');
+                            if (patternCountScriptTag) {
+                                try {
+                                    this.patternCountInput = parseInt(patternCountScriptTag.textContent, 10);
+                                } catch (e) {
+                                    console.error('Failed to parse Logic3 pattern count JSON:', e);
+                                    globalDebugLog('[JS] Logic3 pattern count JSON 파싱 실패! 기본값 사용.', e);
+                                    this.patternCountInput = 1;
+                                }
+                            } else {
+                                console.warn('logic3_pattern_count_data script tag not found. Using default count.');
+                                globalDebugLog('[JS] logic3_pattern_count_data script tag 없음. 기본값 사용.');
+                                this.patternCountInput = 1;
+                            }
+
+                            this.$nextTick(() => {
+                                this.updateTableState();
+                                this.initializeSelectAppearances();
+                            });
+                            this.$watch('patterns', () => {
+                                this.patternCountInput = this.patterns.length;
+                            });
+                        },
+                        updateSelectAppearance(selectElement) {
+                            if (!selectElement) return;
+                            selectElement.classList.remove('select-1', 'select--1');
+                            if (selectElement.value == '1') {
+                                selectElement.classList.add('select-1');
+                            } else if (selectElement.value == '-1') {
+                                selectElement.classList.add('select--1');
+                            }
+                            globalDebugLog('[JS] Select appearance updated for:', selectElement.name, selectElement.value);
+                        },
+                        initializeSelectAppearances() {
+                            this.$root.querySelectorAll('select.pattern-select').forEach(this.updateSelectAppearance);
+                            globalDebugLog('[JS] Initial select appearances initialized.');
+                        },
+                        updateTableState() {
+                            this.$refs.hiddenPatternCount.value = this.patterns.length;
+                        },
+                        generatePatterns() {
+                            const count = parseInt(this.patternCountInput, 10);
+                            if (isNaN(count) || count < 1 || count > 50) {
+                                alert('패턴 개수는 1에서 50 사이의 숫자로 입력해주세요.');
+                                globalDebugLog('[JS] generatePatterns: 잘못된 패턴 개수 입력.');
+                                return;
+                            }
+                            this.patterns = [];
+                            for (let i = 0; i < count; i++) {
+                                this.patterns.push(Array(7).fill(1));
+                            }
+                            this.$nextTick(() => {
+                                this.initializeSelectAppearances();
+                            });
+                            globalDebugLog('[JS] generatePatterns: 새 패턴 생성됨. 개수:', this.patterns.length);
+                        },
+                        addRow() {
+                            if (this.patterns.length >= 50) {
+                                alert('패턴은 최대 50개까지만 추가할 수 있습니다.');
+                                globalDebugLog('[JS] addRow: 최대 패턴 개수 초과.');
+                                return;
+                            }
+                            this.patterns.push(Array(7).fill(1));
+                            this.$nextTick(() => {
+                                const newRow = this.$refs.patternTbody.lastElementChild;
+                                if (newRow) {
+                                    newRow.querySelectorAll('select.pattern-select').forEach(this.updateSelectAppearance);
+                                }
+                            });
+                            this.updateTableState();
+                            globalDebugLog('[JS] addRow: 새 행 추가됨. 현재 패턴 개수:', this.patterns.length);
+                        },
+                        deleteRow(index) {
+                            if (this.patterns.length <= 1) {
+                                alert('마지막 남은 패턴은 삭제할 수 없습니다.');
+                                globalDebugLog('[JS] deleteRow: 마지막 패턴 삭제 불가.');
+                                return;
+                            }
+                            this.patterns.splice(index, 1);
+                            this.updateTableState();
+                            globalDebugLog('[JS] deleteRow: 행 삭제됨. 현재 패턴 개수:', this.patterns.length);
+                        },
+                        onSelectChange(event) {
+                            this.updateSelectAppearance(event.target);
+                            const [rowIndex, colIndex] = event.target.name.replace(/sequences\[(\d+)\]\[(\d+)\]/, '$1,$2').split(',').map(Number);
+                            this.patterns[rowIndex][colIndex] = parseInt(event.target.value);
+                            globalDebugLog(`[JS] Select change: Row ${rowIndex}, Col ${colIndex}, Value: ${this.patterns[rowIndex][colIndex]}`);
+                        },
+                        onFormSubmit(event) {
+                            globalDebugLog('Form submitted via onFormSubmit.', { patterns: this.patterns });
+                            event.target.submit();
+                        }
+                    }"
+                    @submit.prevent="onFormSubmit($event)"
+                >
+                    {% csrf_token %}
+                    <div
+                        class="flex flex-wrap items-center border-b dark:border-gray-700 pb-4 mb-6 gap-4">
+                        <div class="flex items-center gap-4 flex-grow">
+                            <label for="pattern_count_input" class="font-semibold whitespace-nowrap text-gray-800 dark:text-gray-100">패턴 개수:</label>
+                            <input type="number" id="pattern_count_input" min="1" max="50"
+                                x-model.number="patternCountInput" @change="generatePatterns()"
+                                class="w-20 p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 bg-gray-50 text-gray-900 dark:text-white">
+                            <button type="button" @click="generatePatterns()"
+                                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm">생성</button>
+                        </div>
+                        <div class="ml-auto flex-shrink-0">
+                            <button type="submit"
+                                class="button-base button-red">
+                                <i class="ti ti-device-floppy mr-1"></i> 저장하기
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table
+                            class="pattern-table text-sm text-left text-gray-500 dark:text-gray-400">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300">
+                                <tr>
+                                    <th class="w-16 px-2 py-3">NO.</th>
+                                    {% for i in "1234567"|make_list %}
+                                        <th class="px-2 py-3">{{ i }}단계</th>
+                                    {% endfor %}
+                                    <th class="w-24 px-2 py-3">관리</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pattern-tbody" x-ref="patternTbody">
+                                <template x-for="(sequence, rowIndex) in patterns" :key="rowIndex">
+                                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                        <td class="font-semibold row-number px-2 py-2" x-text="rowIndex + 1"></td>
+                                        <template x-for="(value, colIndex) in sequence" :key="colIndex">
+                                            <td class="px-2 py-2">
+                                                <select :name="`sequences[${rowIndex}][${colIndex}]`"
+                                                    x-model.number="patterns[rowIndex][colIndex]"
+                                                    @change="onSelectChange($event)"
+                                                    class="pattern-select w-full focus:ring-2 focus:ring-blue-500">
+                                                    <option value="1" :selected="value === 1">붙</option>
+                                                    <option value="-1" :selected="value === -1">꺽</option>
+                                                </select>
+                                            </td>
+                                        </template>
+                                        <td class="px-2 py-2">
+                                            <button type="button" @click="deleteRow(rowIndex)"
+                                                class="button-base button-red">
+                                                삭제
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- 행 추가 버튼 -->
+                    <div class="mt-4 text-center">
+                        <button type="button" id="add-row-btn" @click="addRow()"
+                            class="button-base button-green">
+                            <i class="ti ti-plus mr-1"></i> 행 추가
+                        </button>
+                    </div>
+                    <input type="hidden" id="pattern_count" name="pattern_count" x-ref="hiddenPatternCount"
+                        :value="patterns.length">
+                </form>
+            </div>
+        </div>
+    </div>
+    {# Alpine.js는 항상 마지막에 로드 #}
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    {# JavaScript 전역 디버그 로깅 함수는 extrablock의 끝에 위치 (DOM 요소보다 먼저 실행) #}
+{% endblock content %}
+
+{% block extrajs %}
+    {{ block.super }}
+    <script>
+        const IS_DEBUG_MODE = {{ DEBUG|yesno:"true,false" }};
+
+        function globalDebugLog(message, ...args) {
+            if (IS_DEBUG_MODE) {
+                console.log(`[JS_DEBUG_LOG] ${message}`, ...args);
+            }
+        }
+        globalDebugLog('logic3_patterns_manage.html - extrajs block loaded.');
+    </script>
+{% endblock extrajs %}

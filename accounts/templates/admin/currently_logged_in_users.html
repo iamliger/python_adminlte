@@ -1,0 +1,152 @@
+{# accounts/templates/admin/currently_logged_in_users.html #}
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block branding %}
+    <h1 id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Django administration') }}</a></h1>
+{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <link rel="stylesheet" href="{% static 'frontend/css/output.css' %}"> {# Tailwind CSS를 로드하여 Admin 페이지에서도 적용 #}
+    <style>
+        /* 커스텀 Admin UI 스타일 */
+        .currently-logged-in-table th, .currently-logged-in-table td {
+            padding: 1rem; /* p-4 */
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb; /* gray-200 */
+        }
+        .dark .currently-logged-in-table th, .dark .currently-logged-in-table td {
+            border-bottom: 1px solid #4b5563; /* gray-600 */
+        }
+        .currently-logged-in-table th {
+            background-color: #f9fafb; /* gray-50 */
+            color: #4b5563; /* gray-700 */
+            font-size: 0.75rem; /* text-xs */
+            text-transform: uppercase;
+        }
+        .dark .currently-logged-in-table th {
+            background-color: #374151; /* gray-700 */
+            color: #d1d5db; /* gray-300 */
+        }
+        .currently-logged-in-table tbody tr:hover {
+            background-color: #f3f4f6; /* gray-100 */
+        }
+        .dark .currently-logged-in-table tbody tr:hover {
+            background-color: #1f2937; /* gray-800 */
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div id="content-main">
+        <div class="module">
+            <h2>{{ title }}</h2>
+            <div class="module-body p-4 bg-white dark:bg-gray-800 rounded shadow-md">
+                {% if currently_logged_in_users %}
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 currently-logged-in-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col" class="py-3 px-4 font-medium text-xs tracking-wider uppercase">ID</th>
+                                    <th scope="col" class="py-3 px-4 font-medium text-xs tracking-wider uppercase">사용자 이름</th>
+                                    <th scope="col" class="py-3 px-4 font-medium text-xs tracking-wider uppercase">이메일</th>
+                                    <th scope="col" class="py-3 px-4 font-medium text-xs tracking-wider uppercase">최근 로그인</th>
+                                    <th scope="col" class="py-3 px-4 font-medium text-xs tracking-wider uppercase">관리</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                                {% for user_data in currently_logged_in_users %}
+                                    <tr id="user-row-{{ user_data.id }}">
+                                        <td class="py-4 px-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{{ user_data.id }}</td>
+                                        <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ user_data.username }}</td>
+                                        <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ user_data.email }}</td>
+                                        <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ user_data.last_login|date:"Y-m-d H:i" }}</td>
+                                        <td class="py-4 px-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <button type="button" 
+                                                    onclick="forceLogout({{ user_data.id }}, '{{ user_data.username }}')"
+                                                    class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-md text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out">
+                                                강제 로그아웃
+                                            </button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-gray-500 dark:text-gray-400">현재 접속 중인 다른 사용자가 없습니다.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extrajs %}
+    {{ block.super }}
+    <script>
+        const FORCE_LOGOUT_API_URL = "{% url 'api:force_logout' %}";
+        const CSRF_TOKEN = "{{ csrf_token }}"; // context_processor를 통해 전달됨
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        async function forceLogout(userId, username) {
+            if (confirm(`정말로 '${username}' 사용자를 강제 로그아웃 시키겠습니까?`)) {
+                try {
+                    const response = await fetch(FORCE_LOGOUT_API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken') // CSRF 토큰 사용
+                        },
+                        body: JSON.stringify({ user_id: userId })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        alert(data.message);
+                        // 성공적으로 로그아웃되면 해당 행을 DOM에서 제거
+                        const userRow = document.getElementById(`user-row-${userId}`);
+                        if (userRow) {
+                            userRow.style.transition = 'opacity 0.5s ease-out';
+                            userRow.style.opacity = '0';
+                            setTimeout(() => {
+                                userRow.remove();
+                                // 모든 사용자가 없으면 '현재 접속 중인 다른 사용자가 없습니다.' 메시지 표시
+                                const tbody = document.querySelector('.currently-logged-in-table tbody');
+                                if (tbody && tbody.children.length === 0) {
+                                    const tableDiv = userRow.closest('.module-body');
+                                    if (tableDiv) {
+                                        tableDiv.innerHTML = '<p class="text-gray-500 dark:text-gray-400">현재 접속 중인 다른 사용자가 없습니다.</p>';
+                                    }
+                                }
+                            }, 500);
+                        }
+                    } else {
+                        alert(`강제 로그아웃 실패: ${data.message || '알 수 없는 오류'}`);
+                    }
+                } catch (error) {
+                    console.error('강제 로그아웃 요청 중 오류 발생:', error);
+                    alert('서버와 통신 중 오류가 발생했습니다.');
+                }
+            }
+        }
+    </script>
+{% endblock %}

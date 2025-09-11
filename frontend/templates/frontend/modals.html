@@ -328,6 +328,14 @@
     @keydown.escape.window="open = false"
     @modal-open.window="if ($event.detail && $event.detail.modalId === $el.id) open = true"
     @modal-close.window="if ($event.detail && $event.detail.modalId === $el.id) open = false"
+    @show-custom-alert.window="
+        console.log('alert-modal: show-custom-alert 이벤트 수신', $event.detail);
+        title = $event.detail.title;
+        message = $event.detail.message;
+        icon = $event.detail.icon;
+        onConfirm = $event.detail.onConfirm;
+        open = true;
+    "
     >
     
     <div x-show="open"
@@ -337,8 +345,7 @@
          @click.stop
          x-init="$watch('open', value => {
             if (value) {
-                // alert 모달은 내부 콘텐츠가 x-text 등으로 Alpine.js에 의해 바인딩되므로
-                // 별도 초기화 로직은 필요 없습니다.
+                // 모달이 열릴 때 추가적인 초기화는 필요 없음 (데이터는 이미 이벤트로 설정됨)
             } else {
                 // 닫힐 때 내부 콘텐츠 초기화 없음
             }

@@ -1,17 +1,21 @@
 # frontend/views.py
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.urls import reverse_lazy
+from django.contrib.auth.decorators import login_required
 import json
 
 
+@login_required(login_url=reverse_lazy("login"))  # <-- 여기를 'login'으로 변경합니다
 def baccara_analyzer_view(request):
-    member_id = request.user.username if request.user.is_authenticated else "guest"
-    member_level = (
-        10 if request.user.is_superuser else (1 if request.user.is_authenticated else 0)
-    )
+    if request.user.level < 2:
+        return redirect(reverse_lazy("accounts:approval_pending"))
+
+    member_id = request.user.username
+    member_level = request.user.level
 
     money_array_info = []
-    is_show_money_info = False  # 초기에는 모달이 자동으로 열리지 않도록 False로 설정
+    is_show_money_info = False
 
     money_json = json.dumps(money_array_info)
 
@@ -24,11 +28,7 @@ def baccara_analyzer_view(request):
         or "windows phone" in user_agent_string
     ):
         is_mobile = True
-    # device_mode 값을 명확한 문자열로 전달
     device_mode = "Mobile" if is_mobile else "PC"
-    print(
-        f"DEBUG: device_mode from view = '{device_mode}' (Type: {type(device_mode)})"
-    )  # <--- 디버깅용 print, 타입 정보 추가
 
     history_box_rows = []
     for i in range(1, 5):
@@ -39,17 +39,25 @@ def baccara_analyzer_view(request):
         "member_level": member_level,
         "is_show_money_info": is_show_money_info,
         "money_json": money_json,
-        "device_mode": device_mode,  # <--- 이 값이 템플릿으로 정확히 전달됩니다.
-        "G5_BBS_URL": "/accounts",
-        "G5_URL": "/",
+        "device_mode": device_mode,
+        "G5_BBS_URL": reverse_lazy("login"),  # <-- 여기를 'login'으로 변경합니다
+        "G5_URL": reverse_lazy("root_redirect"),
         "history_box_rows": history_box_rows,
+        "user": request.user,
     }
     return render(request, "frontend/baccara_analyzer.html", context)
 
 
-def mypage_view(request):  # <--- 더미 마이페이지 뷰 추가
+@login_required(login_url=reverse_lazy("login"))  # <-- 여기를 'login'으로 변경합니다
+def mypage_view(request):
+    if request.user.level < 2:
+        return redirect(reverse_lazy("accounts:approval_pending"))
+
     context = {
-        "user_info": "여기는 마이페이지 정보가 표시될 곳입니다.",
+        "user_info": f"여기는 {request.user.username}님의 마이페이지 정보가 표시될 곳입니다. (이메일: {request.user.email}, 레벨: {request.user.level})",
         "game_stats": "여기는 사용자 게임 통계가 표시될 곳입니다.",
+        "member_id": request.user.username,
+        "member_level": request.user.level,
+        "user": request.user,
     }
     return render(request, "frontend/mypage_content.html", context)

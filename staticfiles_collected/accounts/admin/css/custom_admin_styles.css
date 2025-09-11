@@ -1,0 +1,321 @@
+/* accounts/static/admin/css/custom_admin_styles.css */
+
+/* 기본 HTML 요소에 대한 다크 모드 배경 및 텍스트 색상 */
+html.dark body {
+    background-color: #1a202c !important;
+    /* dark:bg-gray-900보다 더 어둡게 */
+    color: #e2e8f0 !important;
+    /* dark:text-gray-100 */
+}
+
+body {
+    background-color: #f7fafc !important;
+    /* light:bg-gray-100 */
+    color: #2d3748 !important;
+    /* light:text-gray-800 */
+}
+
+/* Admin 기본 스타일을 존중하면서 커스텀 UI 스타일을 강력하게 적용 */
+.module-body {
+    /* Jazzmin의 module-body 배경색 재정의 */
+    background-color: #ffffff !important;
+    /* 라이트 모드 */
+    border: 1px solid #e2e8f0 !important;
+    /* gray-200 */
+    color: #1a202c !important;
+    /* text-gray-900 */
+    padding: 1.5rem !important;
+    /* p-6 */
+    border-radius: 0.5rem !important;
+    /* rounded-lg */
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+    /* shadow-md */
+}
+
+html.dark .module-body {
+    background-color: #1f2937 !important;
+    /* 다크 모드 */
+    border: 1px solid #4a5568 !important;
+    /* gray-700 */
+    color: #d1d5db !important;
+    /* text-gray-100 */
+}
+
+/* 테이블 스타일 */
+.pattern-table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+    min-width: 900px;
+    /* 데스크톱에서 최소 너비 유지 */
+}
+
+.pattern-table th,
+.pattern-table td {
+    text-align: center !important;
+    padding: 0.75rem 0.5rem !important;
+    vertical-align: middle !important;
+    border: 1px solid #e2e8f0 !important;
+    /* gray-200 */
+    color: #4a5568 !important;
+    /* text-gray-700 */
+    background-color: #ffffff !important;
+    /* bg-white */
+}
+
+html.dark .pattern-table th,
+html.dark .pattern-table td {
+    border: 1px solid #4a5568 !important;
+    /* gray-700 */
+    color: #d1d5db !important;
+    /* text-gray-300 */
+    background-color: #1f2937 !important;
+    /* bg-gray-800 */
+}
+
+.pattern-table thead th {
+    font-weight: 600 !important;
+    /* font-semibold */
+    color: #4a5568 !important;
+    /* text-gray-700 */
+    text-transform: uppercase !important;
+    font-size: 0.75rem !important;
+    /* text-xs */
+    background-color: #f7fafc !important;
+    /* bg-gray-50 */
+}
+
+html.dark .pattern-table thead th {
+    color: #d1d5db !important;
+    /* text-gray-300 */
+    background-color: #374151 !important;
+    /* bg-gray-700 */
+}
+
+/* Select 박스 스타일 */
+.pattern-select {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+    background-position: right 0.5rem center !important;
+    background-repeat: no-repeat !important;
+    background-size: 1.5em 1.5em !important;
+    padding-right: 2.5rem !important;
+    padding-left: 0.5rem !important;
+    height: 2.5rem !important;
+    min-width: 4rem !important;
+    /* 최소 너비 */
+
+    border: 1px solid #cbd5e0 !important;
+    border-radius: 0.375rem !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.2s ease-in-out !important;
+
+    color: #4a5568 !important;
+    background-color: #ffffff !important;
+}
+
+html.dark .pattern-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+    background-color: #374151 !important;
+    color: #d1d5db !important;
+    border-color: #4b5563 !important;
+}
+
+.pattern-select:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5) !important;
+    border-color: #4299e1 !important;
+}
+
+.pattern-select.select-1 {
+    /* '붙' */
+    color: #3b82f6 !important;
+    /* blue-500, !important로 강제 */
+    font-weight: 600 !important;
+}
+
+.pattern-select.select--1 {
+    /* '꺽' */
+    color: #ef4444 !important;
+    /* red-500, !important로 강제 */
+    font-weight: 600 !important;
+}
+
+/* 버튼 스타일 */
+.button-base {
+    padding: 0.5rem 0.75rem !important;
+    border-radius: 0.375rem !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    color: #ffffff !important;
+    white-space: nowrap !important;
+    transition: all 0.15s ease-in-out !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.button-red {
+    background-color: #ef4444 !important;
+    border: 1px solid #ef4444 !important;
+}
+
+.button-red:hover {
+    background-color: #dc2626 !important;
+    border-color: #dc2626 !important;
+}
+
+.button-green {
+    background-color: #22c55e !important;
+    border: 1px solid #22c55e !important;
+}
+
+.button-green:hover {
+    background-color: #16a34a !important;
+    border-color: #16a34a !important;
+}
+
+.button-blue {
+    /* '생성' 버튼용 */
+    background-color: #3b82f6 !important;
+    border: 1px solid #3b82f6 !important;
+}
+
+.button-blue:hover {
+    background-color: #2563eb !important;
+    border-color: #2563eb !important;
+}
+
+/* Django messages 스타일 (Jazzmin의 것을 덮어쓰기) */
+.messagelist {
+    list-style: none !important;
+    padding-left: 0 !important;
+    margin-bottom: 1rem !important;
+}
+
+.messagelist li {
+    padding: 0.75rem 1.25rem !important;
+    margin-bottom: 0.5rem !important;
+    border-radius: 0.375rem !important;
+    font-weight: 500 !important;
+    font-size: 0.875rem !important;
+    color: #ffffff !important;
+    /* 메시지 텍스트 흰색 */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    position: relative !important;
+    /* 닫기 버튼 위치 조정 */
+}
+
+.messagelist li .close {
+    background: none !important;
+    border: none !important;
+    font-size: 1.5rem !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    cursor: pointer !important;
+    line-height: 1 !important;
+    margin-left: 0.5rem !important;
+    padding: 0 !important;
+    opacity: 1 !important;
+    /* Bootstrap의 페이드 아웃 막기 */
+    position: absolute !important;
+    right: 0.75rem !important;
+    /* px-3 */
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+}
+
+.messagelist li .close:hover {
+    color: #ffffff !important;
+}
+
+.messagelist .success {
+    background-color: #10b981 !important;
+    /* green-500 */
+}
+
+.messagelist .error {
+    background-color: #ef4444 !important;
+    /* red-500 */
+}
+
+.messagelist .warning {
+    background-color: #f59e0b !important;
+    /* amber-500 */
+}
+
+.messagelist .info {
+    background-color: #3b82f6 !important;
+    /* blue-500 */
+}
+
+.messagelist li .icon {
+    margin-right: 0.5rem !important;
+}
+
+/* 반응형 웹 디자인을 위한 미디어 쿼리 */
+@media (max-width: 768px) {
+
+    /* 태블릿 및 모바일 */
+    .pattern-table {
+        min-width: 100% !important;
+        /* 모바일에서 가로 스크롤 가능하도록 */
+    }
+
+    .pattern-table th,
+    .pattern-table td {
+        padding: 0.5rem 0.25rem !important;
+        /* 모바일에서 패딩 줄이기 */
+        font-size: 0.6rem !important;
+        /* 폰트 크기 줄이기 */
+    }
+
+    .pattern-select {
+        min-width: unset !important;
+        /* 최소 너비 제한 해제 */
+        width: 3rem !important;
+        /* select 박스 너비 조절 */
+        padding-right: 1.5rem !important;
+        /* 화살표를 위한 패딩 */
+        height: 2rem !important;
+        font-size: 0.6rem !important;
+        background-size: 1em 1em !important;
+    }
+
+    .button-base {
+        padding: 0.4rem 0.6rem !important;
+        font-size: 0.6rem !important;
+    }
+
+    .messagelist li {
+        font-size: 0.75rem !important;
+        padding: 0.5rem 1rem !important;
+    }
+}
+
+@media (max-width: 500px) {
+
+    /* 더 작은 모바일 기기 */
+    .module-body {
+        padding: 1rem !important;
+    }
+
+    .pattern-table th,
+    .pattern-table td {
+        padding: 0.3rem 0.1rem !important;
+        font-size: 0.55rem !important;
+    }
+
+    .pattern-select {
+        width: 2.5rem !important;
+        height: 1.8rem !important;
+        font-size: 0.55rem !important;
+    }
+
+    .button-base {
+        padding: 0.3rem 0.5rem !important;
+        font-size: 0.55rem !important;
+    }
+}
