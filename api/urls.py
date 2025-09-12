@@ -6,7 +6,8 @@ from .views import (
     ForceLogoutAPIView,
     HeartbeatAPIView,
     BroadcastMessageAPIView,
-)  # ForceLogoutAPIView 임포트
+    ProcessGameResultAPIView,
+)
 
 app_name = "api"
 
@@ -18,5 +19,10 @@ urlpatterns = [
         "broadcast_message/",
         BroadcastMessageAPIView.as_view(),
         name="broadcast_message",
+    ),
+    path(
+        "process_game_result/",
+        ProcessGameResultAPIView.as_view(),
+        name="process_game_result",
     ),
 ]
